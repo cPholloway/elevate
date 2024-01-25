@@ -4,6 +4,7 @@ GIT ?= /usr/local/cpanel/3rdparty/bin/git
 RELEASE_TAG ?= release
 PERL_BIN=/usr/local/cpanel/3rdparty/perl/536/bin
 VERSION=`cat version`
+PREV_VERSION=$(shell expr $(VERSION) - 1)
 
 all:
 	$(MAKE) build
@@ -52,6 +53,14 @@ build:
 
 clean:
 	rm -f tags
+
+update_changelog:
+	$(GIT) tag -f v${VERSION}
+	$(GIT) push --force origin tag v${VERSION}
+	maint/generate_changelog v${PREV_VERSION} v${VERSION}
+	$(GIT) add changelog
+	$(GIT) commit -m "Update changelog for release v${VERSION}"
+	$(GIT) show
 
 release: build
 	$(GIT) tag -f $(RELEASE_TAG)	

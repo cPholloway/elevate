@@ -1,0 +1,19 @@
+#!/usr/local/cpanel/3rdparty/bin/perl
+
+use cPstrict;
+use Path::Tiny;
+
+my $from = $ARGV[0];
+my $to   = $ARGV[1];
+
+my $changelog_path            = 'changelog';
+my $generate_changelog_script = '/usr/local/cpanel/build-tools/generate_changelog';
+
+my $changelog = `/usr/local/cpanel/build-tools/generate_changelog --from $from --to $to --markdown 2>/dev/null`;
+my $data      = Path::Tiny::path($changelog_path)->slurp();
+
+my $new_changelog = $changelog . "\n" . $data;
+
+Path::Tiny::path($changelog_path)->spew($new_changelog);
+
+1;
