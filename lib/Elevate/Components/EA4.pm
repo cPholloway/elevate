@@ -135,6 +135,7 @@ sub _backup_ea4_profile ($self) {    ## _backup_ea4_profile
 sub _get_ea4_profile ($self) {
 
     # obs_project_aliases from /etc/cpanel/ea4/ea4-metainfo.json
+    # TODO: fix this via RE-147
     my $ea_alias = $self->upgrade_to_rocky() ? 'CentOS_8' : 'AlmaLinux_8';
 
     my @cmd = ( '/usr/local/bin/ea_current_to_profile', "--target-os=$ea_alias" );
