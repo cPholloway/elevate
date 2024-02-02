@@ -84,6 +84,10 @@ sub get_available_upgrade_paths {
     return;
 }
 
+sub name () {
+    return instance()->name();
+}
+
 sub can_upgrade_to ($flavor) {
     my $name = instance()->name();
 

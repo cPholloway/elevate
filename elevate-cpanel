@@ -1543,6 +1543,7 @@ EOS
     use Cpanel::JSON ();
 
     use Elevate::Constants ();
+    use Elevate::OS        ();
 
     # use Elevate::Blockers::Base();
     our @ISA;
@@ -1595,6 +1596,24 @@ EOS
       MariaDB103
       MariaDB105
       MariaDB106
+    };
+
+    use constant VETTED_CLOUDLINUX_YUM_REPO => qw{
+      cloudlinux
+      cloudlinux-base
+      cloudlinux-updates
+      cloudlinux-extras
+      cloudlinux-compat
+      cloudlinux-imunify360
+      cl-ea4
+      cloudlinux-ea4
+      cloudlinux-ea4-rollout
+      cl-mysql
+      cl-mysql-meta
+      cloudlinux-elevate
+      cloudlinux-rollout
+      cloudlinux-x86_64-server
+      cloudlinux-x86_64-server-updates
     };
 
     use constant VETTED_YUM_REPO => qw{
@@ -1735,7 +1754,10 @@ EOS
         $self->{_yum_repos_to_disable}                = [];
         $self->{_yum_repos_unsupported_with_packages} = [];
 
-        my %vetted = map { $_ => 1 } VETTED_YUM_REPO;
+        my @vetted_repos = (VETTED_YUM_REPO);
+        push( @vetted_repos, VETTED_CLOUDLINUX_YUM_REPO ) if Elevate::OS::name() eq 'CloudLinux7';
+
+        my %vetted = map { $_ => 1 } @vetted_repos;
 
         my $repo_dir = Elevate::Constants::YUM_REPOS_D;
 
@@ -1762,7 +1784,13 @@ EOS
                 return unless length $current_repo_name;
                 return unless $current_repo_enabled;
 
+                my $temp_current_repo_name = $current_repo_name;
+
+                $current_repo_name = $1 if $current_repo_name =~ m/^(cloudlinux-(?:rollout|ea4)(?:-rollout)?)-[0-9]+$/;
+
                 my $is_vetted = $vetted{$current_repo_name} || $vetted{ lc $current_repo_name };
+
+                $current_repo_name = $temp_current_repo_name;
 
                 if ( !$is_vetted ) {
                     $status{'UNVETTED'} = 1;
@@ -4170,6 +4198,10 @@ EOS
         }
 
         return;
+    }
+
+    sub name () {
+        return instance()->name();
     }
 
     sub can_upgrade_to ($flavor) {
