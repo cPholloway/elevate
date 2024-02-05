@@ -18,6 +18,10 @@ sub _build_get_default_upgrade_to ($self) {
     return 'cloudlinux';
 }
 
+sub _build_leapp_can_handle_epel ($self) {
+    return 1;
+}
+
 sub _build_name ($self) {
     return 'CloudLinux7';
 }

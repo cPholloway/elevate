@@ -309,6 +309,8 @@ use Elevate::Script           ();
 use Elevate::Service          ();
 use Elevate::SystemctlService ();
 use Elevate::Usage            ();
+use Elevate::DNF              ();
+use Elevate::YUM              ();
 
 #<<V *** DO NOT EDIT THESE LINES MANUALLY ***
 use constant VERSION => 1;
@@ -565,7 +567,6 @@ sub monitor_upgrade ($self) {
 
 sub start ($self) {
     $self->_parse_opt_upgrade_to();
-    die "TH_DEBUG testing\n";
     my $stage = get_stage();
     if ( $stage != 0 ) {
         my $header;
@@ -1148,29 +1149,7 @@ sub run_stage_4 ($self) {
 
     $stash->{stage4} //= {};    # run once each blocks
 
-    $self->run_once(
-        sysup => sub {
-            Cpanel::Yum::Vars::install();
-            $self->ssystem_and_die(qw{/usr/bin/dnf clean all});
-
-            # no failures once already installed: no need to check for the epel-release version
-            $self->ssystem_and_die(qw{/usr/bin/dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm});
-
-            $self->ssystem(qw{/usr/bin/dnf config-manager --enable powertools});
-            $self->ssystem(qw{/usr/bin/dnf config-manager --enable epel});
-
-            # Break cpanel-perl (NOTE: This only works on perl 5.36)
-            $self->ssystem(qw{/usr/bin/rm -f /usr/local/cpanel/3rdparty/perl/536/cpanel-lib/X/Tiny.pm});
-            {
-                local $ENV{'CPANEL_BASE_INSTALL'} = 1;    # Don't fix more than perl itself.
-                $self->ssystem(qw{/usr/local/cpanel/scripts/fix-cpanel-perl});
-            }
-            $self->ssystem(qw{/usr/bin/dnf -y --allowerasing --disablerepo cpanel-plugins update});
-            $self->ssystem_and_die(qw{/usr/local/cpanel/scripts/sysup});
-
-            return;
-        }
-    );
+    $self->run_component_once( 'RpmDB', => 'post_leapp' );
 
     $self->run_once(
         restore_cpanel_services => sub {

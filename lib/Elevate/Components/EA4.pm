@@ -14,6 +14,7 @@ use cPstrict;
 
 use Elevate::Constants ();
 use Elevate::RPM       ();
+use Elevate::YUM       ();
 
 use Cwd           ();
 use Log::Log4perl qw(:easy);
@@ -73,7 +74,7 @@ sub post_leapp ($self) {
 sub _cleanup_rpm_db ($self) {
 
     # remove all ea- packages
-    $self->ssystem(q{/usr/bin/yum -y erase ea-*});
+    $self->yum->erase('ea-*');
 
     return;
 }

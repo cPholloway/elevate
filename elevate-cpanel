@@ -64,6 +64,8 @@ BEGIN {    # Suppress load of all of these at earliest point.
     $INC{'Elevate/Service.pm'}                     = 'script/elevate-cpanel.PL.static';
     $INC{'Elevate/SystemctlService.pm'}            = 'script/elevate-cpanel.PL.static';
     $INC{'Elevate/Usage.pm'}                       = 'script/elevate-cpanel.PL.static';
+    $INC{'Elevate/DNF.pm'}                         = 'script/elevate-cpanel.PL.static';
+    $INC{'Elevate/YUM.pm'}                         = 'script/elevate-cpanel.PL.static';
 }
 
 {    # --- BEGIN lib/Elevate/Constants.pm
@@ -2156,6 +2158,8 @@ EOS
     use Simple::Accessor qw(
       cpev
       rpm
+      yum
+      dnf
     );
 
     # use Log::Log4perl qw(:easy);
@@ -2187,6 +2191,14 @@ EOS
 
     sub _build_rpm ($self) {
         return Elevate::RPM->new( cpev => $self );
+    }
+
+    sub _build_yum ($self) {
+        return Elevate::YUM->new( cpev => $self );
+    }
+
+    sub _build_dnf ($self) {
+        return Elevate::DNF->new( cpev => $self );
     }
 
     sub run_once ( $self, $subname ) {
@@ -2327,6 +2339,7 @@ EOS
 
     use Elevate::Constants ();
     use Elevate::RPM       ();
+    use Elevate::YUM       ();
 
     use Cwd ();
 
@@ -2373,7 +2386,7 @@ EOS
 
     sub _cleanup_rpm_db ($self) {
 
-        $self->ssystem(q{/usr/bin/yum -y erase ea-*});
+        $self->yum->erase('ea-*');
 
         return;
     }
@@ -3920,6 +3933,8 @@ EOS
 
     use Elevate::Constants              ();
     use Elevate::Blockers::Repositories ();
+    use Elevate::OS                     ();
+    use Elevate::RPM                    ();
 
     use Cpanel::SafeRun::Simple ();
     use Cwd                     ();
@@ -3934,6 +3949,8 @@ EOS
 
     sub pre_leapp ($self) {
 
+        $self->run_once("_disable_epel");
+        $self->run_once("_disable_yum_plugin_fastestmirror");
         $self->run_once("_disable_known_yum_repositories");
 
         return;
@@ -3959,6 +3976,27 @@ EOS
         return;
     }
 
+    sub _disable_yum_plugin_fastestmirror ($self) {
+        my $pkg = 'yum-plugin-fastestmirror';
+        $self->_erase_package($pkg);
+        return;
+    }
+
+    sub _disable_epel ($self) {
+
+        return if Elevate::OS::leapp_can_handle_epel();
+
+        my $pkg = 'epel-release';
+        $self->_erase_package($pkg);
+        return;
+    }
+
+    sub _erase_package ( $self, $pkg ) {
+        return unless Cpanel::Pkgr::is_installed($pkg);
+        $self->rpm->remove_no_dependencies($pkg);
+        return;
+    }
+
     1;
 
 }    # --- END lib/Elevate/Components/Repositories.pm
@@ -3970,6 +4008,7 @@ EOS
     use cPstrict;
 
     use Elevate::Constants ();
+    use Elevate::DNF       ();
 
     use Cwd        ();
     use File::Copy ();
@@ -3977,7 +4016,8 @@ EOS
     # use Log::Log4perl qw(:easy);
     INIT { Log::Log4perl->import(qw{:easy}); }
 
-    use Cpanel::Pkgr ();
+    use Cpanel::Pkgr      ();
+    use Cpanel::Yum::Vars ();
 
     # use Elevate::Components::Base();
     our @ISA;
@@ -3992,17 +4032,35 @@ EOS
 
     sub _cleanup_rpms ($self) {
 
-        $self->ssystem(q{/usr/bin/rpm -e --justdb --nodeps `/usr/bin/rpm -qa | /usr/bin/egrep '^cpanel-.*\.x86_64'`});
-
-        foreach my $rpm (qw/ yum-plugin-fastestmirror epel-release/) {
-            next unless Cpanel::Pkgr::is_installed($rpm);
-            $self->ssystem( '/usr/bin/rpm', '-e', '--nodeps', $rpm );
-        }
+        $self->rpm->remove_cpanel_arch_rpms();
 
         return;
     }
 
     sub post_leapp ($self) {
+
+        $self->run_once("_sysup");
+
+        return;
+    }
+
+    sub _sysup ($self) {
+        Cpanel::Yum::Vars::install();
+        $self->dnf->clean_all();
+
+        $self->dnf->install_epel();
+
+        $self->dnf->config_manager_enable('powertools');
+        $self->dnf->config_manager_enable('epel');
+
+        $self->ssystem(qw{/usr/bin/rm -f /usr/local/cpanel/3rdparty/perl/536/cpanel-lib/X/Tiny.pm});
+        {
+            local $ENV{'CPANEL_BASE_INSTALL'} = 1;    # Don't fix more than perl itself.
+            $self->ssystem(qw{/usr/local/cpanel/scripts/fix-cpanel-perl});
+        }
+        $self->dnf->update_allow_raising( '--disablerepo', 'cpanel-plugins' );
+        $self->ssystem_and_die(qw{/usr/local/cpanel/scripts/sysup});
+
         return;
     }
 
@@ -4217,6 +4275,10 @@ EOS
         return 0;
     }
 
+    sub leapp_can_handle_epel () {
+        return instance()->leapp_can_handle_epel();
+    }
+
     1;
 
 }    # --- END lib/Elevate/OS.pm
@@ -4232,11 +4294,16 @@ EOS
 
     use Simple::Accessor qw{
       get_default_upgrade_to
+      leapp_can_handle_epel
       name
     };
 
     sub _build_get_default_upgrade_to ($self) {
         die "subclass must implement get_default_upgrade_to\n";
+    }
+
+    sub _build_leapp_can_handle_epel ($self) {
+        return 0;
     }
 
     sub _build_name ($self) {
@@ -4287,6 +4354,10 @@ EOS
 
     sub _build_get_default_upgrade_to ($self) {
         return 'cloudlinux';
+    }
+
+    sub _build_leapp_can_handle_epel ($self) {
+        return 1;
     }
 
     sub _build_name ($self) {
@@ -4684,6 +4755,8 @@ EOS
       cpev
     };
 
+    our $rpm = '/usr/bin/rpm';
+
     sub _build_cpev {
         die q[Missing cpev];
     }
@@ -4701,7 +4774,7 @@ EOS
         my %config_files;
         foreach my $pkg (@$pkgs) {
 
-            my $out = $self->cpev->ssystem_capture_output( '/usr/bin/rpm', '-qc', $pkg ) || {};
+            my $out = $self->cpev->ssystem_capture_output( $rpm, '-qc', $pkg ) || {};
 
             if ( $out->{status} != 0 ) {
 
@@ -4735,6 +4808,37 @@ EOS
             next unless -e $backup_file;
 
             File::Copy::move( $backup_file, $file ) or WARN("Unable to restore config file $backup_file: $!");
+        }
+
+        return;
+    }
+
+    sub remove_no_dependencies ( $self, $pkg ) {
+        $self->cpev->ssystem( $rpm, '-e', '--nodeps', $pkg );
+        return;
+    }
+
+    sub remove_no_dependencies_and_justdb ( $self, $pkg ) {
+        $self->cpev->ssystem( $rpm, '-e', '--nodeps', '--justdb', $pkg );
+        return;
+    }
+
+    sub get_installed_rpms ($self) {
+        my $out = $self->cpev->ssystem_capture_output( $rpm, '-qa' );
+        return @{ $out->{stdout} };
+    }
+
+    sub get_cpanel_arch_rpms ($self) {
+        my @installed_rpms   = $self->get_installed_rpms();
+        my @cpanel_arch_rpms = grep { $_ =~ m/^cpanel-.*\.x86_64$/ } @installed_rpms;
+        return @cpanel_arch_rpms;
+    }
+
+    sub remove_cpanel_arch_rpms ($self) {
+        my @rpms_to_remove = $self->get_cpanel_arch_rpms();
+
+        foreach my $rpm (@rpms_to_remove) {
+            $self->remove_no_dependencies_and_justdb($rpm);
         }
 
         return;
@@ -5154,6 +5258,100 @@ EOS
 
 }    # --- END lib/Elevate/Usage.pm
 
+{    # --- BEGIN lib/Elevate/DNF.pm
+
+    package Elevate::DNF;
+
+    use cPstrict;
+
+    # use Log::Log4perl qw(:easy);
+    INIT { Log::Log4perl->import(qw{:easy}); }
+
+    # use Elevate::YUM();
+    our @ISA;
+    BEGIN { push @ISA, qw(Elevate::YUM); }
+
+    sub _build_pkgmgr {
+        return '/usr/bin/dnf';
+    }
+
+    sub install_epel ($self) {
+        my $pkgmgr       = $self->pkgmgr;
+        my $epel_rpm_url = 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm';
+
+        $self->cpev->ssystem_and_die( $pkgmgr, '-y', 'install', $epel_rpm_url );
+
+        return;
+    }
+
+    sub config_manager_enable ( $self, $repo ) {
+        my $pkgmgr = $self->pkgmgr;
+
+        $self->cpev->ssystem( $pkgmgr, 'config-manager', '--enable', $repo );
+
+        return;
+    }
+
+    sub update_allow_raising ( $self, @args ) {
+        my $pkgmgr = $self->pkgmgr;
+
+        my @additional_args = scalar @args ? @args : '';
+
+        $self->cpev->ssystem( $pkgmgr, '-y', '--allowerasing', @additional_args, 'update' );
+
+        return;
+    }
+
+    1;
+
+}    # --- END lib/Elevate/DNF.pm
+
+{    # --- BEGIN lib/Elevate/YUM.pm
+
+    package Elevate::YUM;
+
+    use cPstrict;
+
+    # use Log::Log4perl qw(:easy);
+    INIT { Log::Log4perl->import(qw{:easy}); }
+
+    use Simple::Accessor qw{
+      cpev
+      pkgmgr
+    };
+
+    sub _build_cpev {
+        die q[Missing cpev];
+    }
+
+    sub _build_pkgmgr {
+        return '/usr/bin/yum';
+    }
+
+    sub erase ( $self, @pkgs ) {
+        return unless scalar @pkgs;
+
+        my $pkgmgr = $self->pkgmgr;
+
+        my $pkg_string = join( ' ', @pkgs );
+
+        $self->cpev->ssystem(qq{$pkgmgr -y erase $pkg_string});
+
+        return;
+    }
+
+    sub clean_all ($self) {
+        my $pkgmgr = $self->pkgmgr;
+
+        $self->cpev->ssystem( $pkgmgr, 'clean', 'all' );
+
+        return;
+    }
+
+    1;
+
+}    # --- END lib/Elevate/YUM.pm
+
 package main;
 
 # Copyright 2023 cPanel L.L.C.
@@ -5465,6 +5663,8 @@ use Elevate::Script           ();
 use Elevate::Service          ();
 use Elevate::SystemctlService ();
 use Elevate::Usage            ();
+use Elevate::DNF              ();
+use Elevate::YUM              ();
 
 #<<V *** DO NOT EDIT THESE LINES MANUALLY ***
 use constant VERSION => 23;
@@ -5721,7 +5921,6 @@ sub monitor_upgrade ($self) {
 
 sub start ($self) {
     $self->_parse_opt_upgrade_to();
-    die "TH_DEBUG testing\n";
     my $stage = get_stage();
     if ( $stage != 0 ) {
         my $header;
@@ -6304,29 +6503,7 @@ sub run_stage_4 ($self) {
 
     $stash->{stage4} //= {};    # run once each blocks
 
-    $self->run_once(
-        sysup => sub {
-            Cpanel::Yum::Vars::install();
-            $self->ssystem_and_die(qw{/usr/bin/dnf clean all});
-
-            # no failures once already installed: no need to check for the epel-release version
-            $self->ssystem_and_die(qw{/usr/bin/dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm});
-
-            $self->ssystem(qw{/usr/bin/dnf config-manager --enable powertools});
-            $self->ssystem(qw{/usr/bin/dnf config-manager --enable epel});
-
-            # Break cpanel-perl (NOTE: This only works on perl 5.36)
-            $self->ssystem(qw{/usr/bin/rm -f /usr/local/cpanel/3rdparty/perl/536/cpanel-lib/X/Tiny.pm});
-            {
-                local $ENV{'CPANEL_BASE_INSTALL'} = 1;    # Don't fix more than perl itself.
-                $self->ssystem(qw{/usr/local/cpanel/scripts/fix-cpanel-perl});
-            }
-            $self->ssystem(qw{/usr/bin/dnf -y --allowerasing --disablerepo cpanel-plugins update});
-            $self->ssystem_and_die(qw{/usr/local/cpanel/scripts/sysup});
-
-            return;
-        }
-    );
+    $self->run_component_once( 'RpmDB', => 'post_leapp' );
 
     $self->run_once(
         restore_cpanel_services => sub {
