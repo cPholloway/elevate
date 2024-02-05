@@ -101,4 +101,8 @@ sub can_upgrade_to ($flavor) {
     return 0;
 }
 
+sub leapp_can_handle_epel () {
+    return instance()->leapp_can_handle_epel();
+}
+
 1;
