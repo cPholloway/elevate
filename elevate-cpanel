@@ -899,7 +899,6 @@ EOS
     sub _blocker_ea4_profile ($self) {
 
         my $pretty_distro_name = $self->upgrade_to_pretty_name();
-
         INFO("Checking EasyApache profile compatibility with $pretty_distro_name.");
 
         $self->cpev->component('EA4')->backup;                        # _backup_ea4_profile();
@@ -2338,6 +2337,7 @@ EOS
     use cPstrict;
 
     use Elevate::Constants ();
+    use Elevate::OS        ();
     use Elevate::RPM       ();
     use Elevate::YUM       ();
 
@@ -2445,7 +2445,7 @@ EOS
 
     sub _get_ea4_profile ($self) {
 
-        my $ea_alias = $self->upgrade_to_rocky() ? 'CentOS_8' : 'AlmaLinux_8';
+        my $ea_alias = Elevate::OS::ea_alias();
 
         my @cmd = ( '/usr/local/bin/ea_current_to_profile', "--target-os=$ea_alias" );
 
@@ -4303,6 +4303,10 @@ EOS
         return instance()->leapp_can_handle_kernelcare();
     }
 
+    sub ea_alias () {
+        return instance()->ea_alias();
+    }
+
     1;
 
 }    # --- END lib/Elevate/OS.pm
@@ -4317,12 +4321,17 @@ EOS
     INIT { Log::Log4perl->import(qw{:easy}); }
 
     use Simple::Accessor qw{
+      ea_alias
       get_default_upgrade_to
       leapp_can_handle_epel
       leapp_can_handle_imunify
       leapp_can_handle_kernelcare
       name
     };
+
+    sub _build_ea_alias ($self) {
+        return 'CentOS_8';
+    }
 
     sub _build_get_default_upgrade_to ($self) {
         die "subclass must implement get_default_upgrade_to\n";
@@ -4385,6 +4394,10 @@ EOS
     # use Elevate::OS::Base();
     our @ISA;
     BEGIN { push @ISA, qw(Elevate::OS::Base); }
+
+    sub _build_ea_alias ($self) {
+        return 'CloudLinux_8';
+    }
 
     sub _build_get_default_upgrade_to ($self) {
         return 'cloudlinux';

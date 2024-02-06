@@ -34,8 +34,8 @@ sub _blocker_ea4_profile ($self) {
 
     # perform an early backup so we can check the list of dropped packages
 
+    # TODO: RE-159 fix this string
     my $pretty_distro_name = $self->upgrade_to_pretty_name();
-
     INFO("Checking EasyApache profile compatibility with $pretty_distro_name.");
 
     $self->cpev->component('EA4')->backup;                        # _backup_ea4_profile();
