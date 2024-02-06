@@ -22,6 +22,10 @@ sub _build_leapp_can_handle_epel ($self) {
     return 1;
 }
 
+sub _build_leapp_can_handle_imunify ($self) {
+    return 1;
+}
+
 sub _build_name ($self) {
     return 'CloudLinux7';
 }

@@ -2735,6 +2735,7 @@ EOS
     use Elevate::Constants ();
     use Elevate::Fetch     ();
     use Elevate::Notify    ();
+    use Elevate::OS        ();
 
     use Cwd ();
 
@@ -2757,6 +2758,8 @@ EOS
 
     sub pre_leapp ($self) {
 
+        return if Elevate::OS::leapp_can_handle_imunify();
+
         return unless $self->is_installed;
 
         $self->run_once("_capture_imunify_features");
@@ -2767,6 +2770,8 @@ EOS
     }
 
     sub post_leapp ($self) {
+
+        return if Elevate::OS::leapp_can_handle_imunify();
 
         $self->run_once('_reinstall_imunify_360');
         $self->run_once('_restore_imunify_features');
@@ -4285,6 +4290,10 @@ EOS
         return instance()->leapp_can_handle_epel();
     }
 
+    sub leapp_can_handle_imunify () {
+        return instance()->leapp_can_handle_imunify();
+    }
+
     1;
 
 }    # --- END lib/Elevate/OS.pm
@@ -4301,6 +4310,7 @@ EOS
     use Simple::Accessor qw{
       get_default_upgrade_to
       leapp_can_handle_epel
+      leapp_can_handle_imunify
       name
     };
 
@@ -4309,6 +4319,10 @@ EOS
     }
 
     sub _build_leapp_can_handle_epel ($self) {
+        return 0;
+    }
+
+    sub _build_leapp_can_handle_imunify ($self) {
         return 0;
     }
 
@@ -4363,6 +4377,10 @@ EOS
     }
 
     sub _build_leapp_can_handle_epel ($self) {
+        return 1;
+    }
+
+    sub _build_leapp_can_handle_imunify ($self) {
         return 1;
     }
 

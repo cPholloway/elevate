@@ -111,4 +111,8 @@ sub leapp_can_handle_epel () {
     return instance()->leapp_can_handle_epel();
 }
 
+sub leapp_can_handle_imunify () {
+    return instance()->leapp_can_handle_imunify();
+}
+
 1;
