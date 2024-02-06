@@ -26,6 +26,10 @@ sub _build_leapp_can_handle_imunify ($self) {
     return 1;
 }
 
+sub _build_leapp_can_handle_kernelcare ($self) {
+    return 1;
+}
+
 sub _build_name ($self) {
     return 'CloudLinux7';
 }
