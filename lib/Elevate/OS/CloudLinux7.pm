@@ -14,6 +14,10 @@ use Log::Log4perl qw(:easy);
 
 use parent 'Elevate::OS::Base';
 
+sub _build_ea_alias ($self) {
+    return 'CloudLinux_8';
+}
+
 sub _build_get_default_upgrade_to ($self) {
     return 'cloudlinux';
 }

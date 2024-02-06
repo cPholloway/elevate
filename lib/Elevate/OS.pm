@@ -119,4 +119,8 @@ sub leapp_can_handle_kernelcare () {
     return instance()->leapp_can_handle_kernelcare();
 }
 
+sub ea_alias () {
+    return instance()->ea_alias();
+}
+
 1;
