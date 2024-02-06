@@ -39,11 +39,17 @@ use constant AVAILABLE_UPGRADE_PATHS_FOR_CLOUDLINUX_7 => qw{
 our $OS;
 
 sub factory {
-    my $distro              = Cpanel::OS::pretty_distro();
-    my $major               = Cpanel::OS::major();
-    my $distro_with_version = $distro . $major;
+    my $distro_with_version = cpev::read_stage_file( 'upgrade_from', '' );
 
-    die "Attempted to get factory for unsupported OS: $distro $major\n" unless grep { $_ eq $distro_with_version } SUPPORTED_DISTROS;
+    my $distro;
+    my $major;
+    if ( !$distro_with_version ) {
+        $distro              = Cpanel::OS::pretty_distro();
+        $major               = Cpanel::OS::major();
+        $distro_with_version = $distro . $major;
+    }
+
+    FATAL("Attempted to get factory for unsupported OS: $distro $major") unless grep { $_ eq $distro_with_version } SUPPORTED_DISTROS;
 
     my $pkg = "Elevate::OS::" . $distro_with_version;
     return $pkg->new;

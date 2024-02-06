@@ -4213,11 +4213,17 @@ EOS
     our $OS;
 
     sub factory {
-        my $distro              = Cpanel::OS::pretty_distro();
-        my $major               = Cpanel::OS::major();
-        my $distro_with_version = $distro . $major;
+        my $distro_with_version = cpev::read_stage_file( 'upgrade_from', '' );
 
-        die "Attempted to get factory for unsupported OS: $distro $major\n" unless grep { $_ eq $distro_with_version } SUPPORTED_DISTROS;
+        my $distro;
+        my $major;
+        if ( !$distro_with_version ) {
+            $distro              = Cpanel::OS::pretty_distro();
+            $major               = Cpanel::OS::major();
+            $distro_with_version = $distro . $major;
+        }
+
+        FATAL("Attempted to get factory for unsupported OS: $distro $major") unless grep { $_ eq $distro_with_version } SUPPORTED_DISTROS;
 
         my $pkg = "Elevate::OS::" . $distro_with_version;
         return $pkg->new;
@@ -6350,6 +6356,11 @@ sub run_stage_1 ($self) {
 
     # store 'upgrade_to' early so later stages can access it
     update_stage_file( { upgrade_to => $self->upgrade_to } );
+
+    # store 'upgrade_from' early so that Elevate::OS can access it
+    # Elevate::OS is based on the OS we are upgrading from since the information
+    # that it provides is mostly based on what leapp can do when upgrading from an OS
+    update_stage_file( { upgrade_from => Elevate::OS::name() } );
 
     return $self->service->install();
 }
