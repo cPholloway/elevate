@@ -998,6 +998,11 @@ sub run_stage_1 ($self) {
     # store 'upgrade_to' early so later stages can access it
     update_stage_file( { upgrade_to => $self->upgrade_to } );
 
+    # store 'upgrade_from' early so that Elevate::OS can access it
+    # Elevate::OS is based on the OS we are upgrading from since the information
+    # that it provides is mostly based on what leapp can do when upgrading from an OS
+    update_stage_file( { upgrade_from => Elevate::OS::name() } );
+
     return $self->service->install();
 }
 
