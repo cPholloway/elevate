@@ -17,6 +17,7 @@ use Log::Log4perl qw(:easy);
 use Simple::Accessor qw{
   get_default_upgrade_to
   leapp_can_handle_epel
+  leapp_can_handle_imunify
   name
 };
 
@@ -25,6 +26,10 @@ sub _build_get_default_upgrade_to ($self) {
 }
 
 sub _build_leapp_can_handle_epel ($self) {
+    return 0;
+}
+
+sub _build_leapp_can_handle_imunify ($self) {
     return 0;
 }
 
