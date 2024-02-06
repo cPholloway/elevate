@@ -115,4 +115,8 @@ sub leapp_can_handle_imunify () {
     return instance()->leapp_can_handle_imunify();
 }
 
+sub leapp_can_handle_kernelcare () {
+    return instance()->leapp_can_handle_kernelcare();
+}
+
 1;

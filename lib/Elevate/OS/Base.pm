@@ -18,6 +18,7 @@ use Simple::Accessor qw{
   get_default_upgrade_to
   leapp_can_handle_epel
   leapp_can_handle_imunify
+  leapp_can_handle_kernelcare
   name
 };
 
@@ -30,6 +31,10 @@ sub _build_leapp_can_handle_epel ($self) {
 }
 
 sub _build_leapp_can_handle_imunify ($self) {
+    return 0;
+}
+
+sub _build_leapp_can_handle_kernelcare ($self) {
     return 0;
 }
 

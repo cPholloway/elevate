@@ -3175,6 +3175,7 @@ EOS
     use cPstrict;
 
     use Elevate::Constants ();
+    use Elevate::OS        ();
 
     use Cwd        ();
     use File::Copy ();
@@ -3189,12 +3190,16 @@ EOS
 
     sub pre_leapp ($self) {
 
+        return if Elevate::OS::leapp_can_handle_kernelcare();
+
         $self->run_once("_remove_kernelcare_if_needed");
 
         return;
     }
 
     sub post_leapp ($self) {
+
+        return if Elevate::OS::leapp_can_handle_kernelcare();
 
         $self->run_once('_restore_kernelcare');
 
@@ -4294,6 +4299,10 @@ EOS
         return instance()->leapp_can_handle_imunify();
     }
 
+    sub leapp_can_handle_kernelcare () {
+        return instance()->leapp_can_handle_kernelcare();
+    }
+
     1;
 
 }    # --- END lib/Elevate/OS.pm
@@ -4311,6 +4320,7 @@ EOS
       get_default_upgrade_to
       leapp_can_handle_epel
       leapp_can_handle_imunify
+      leapp_can_handle_kernelcare
       name
     };
 
@@ -4323,6 +4333,10 @@ EOS
     }
 
     sub _build_leapp_can_handle_imunify ($self) {
+        return 0;
+    }
+
+    sub _build_leapp_can_handle_kernelcare ($self) {
         return 0;
     }
 
@@ -4381,6 +4395,10 @@ EOS
     }
 
     sub _build_leapp_can_handle_imunify ($self) {
+        return 1;
+    }
+
+    sub _build_leapp_can_handle_kernelcare ($self) {
         return 1;
     }
 
