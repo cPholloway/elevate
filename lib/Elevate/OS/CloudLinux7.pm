@@ -18,7 +18,11 @@ sub _build_ea_alias ($self) {
     return 'CloudLinux_8';
 }
 
-sub _build_get_default_upgrade_to ($self) {
+sub _build_elevate_rpm_url ($self) {
+    return 'https://repo.cloudlinux.com/elevate/elevate-release-latest-el7.noarch.rpm';
+}
+
+sub _build_default_upgrade_to ($self) {
     return 'cloudlinux';
 }
 
@@ -32,6 +36,14 @@ sub _build_leapp_can_handle_imunify ($self) {
 
 sub _build_leapp_can_handle_kernelcare ($self) {
     return 1;
+}
+
+sub _build_leapp_data_pkg ($self) {
+    return 'leapp-data-cloudlinux';
+}
+
+sub _build_leapp_flag ($self) {
+    return '--nowarn';
 }
 
 sub _build_name ($self) {

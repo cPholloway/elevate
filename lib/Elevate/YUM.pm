@@ -27,14 +27,12 @@ sub _build_pkgmgr {
     return '/usr/bin/yum';
 }
 
-sub erase ( $self, @pkgs ) {
+sub remove ( $self, @pkgs ) {
     return unless scalar @pkgs;
 
     my $pkgmgr = $self->pkgmgr;
 
-    my $pkg_string = join( ' ', @pkgs );
-
-    $self->cpev->ssystem(qq{$pkgmgr -y erase $pkg_string});
+    $self->cpev->ssystem_and_die( $pkgmgr, '-y', 'remove', @pkgs );
 
     return;
 }
@@ -43,6 +41,24 @@ sub clean_all ($self) {
     my $pkgmgr = $self->pkgmgr;
 
     $self->cpev->ssystem( $pkgmgr, 'clean', 'all' );
+
+    return;
+}
+
+sub install_rpm_via_url ( $self, $rpm_url ) {
+    my $pkgmgr = $self->pkgmgr;
+
+    $self->cpev->ssystem_and_die( $pkgmgr, '-y', 'install', $rpm_url );
+
+    return;
+}
+
+sub install ( $self, @pkgs ) {
+    return unless scalar @pkgs;
+
+    my $pkgmgr = $self->pkgmgr;
+
+    $self->cpev->ssystem_and_die( $pkgmgr, '-y', 'install', @pkgs );
 
     return;
 }

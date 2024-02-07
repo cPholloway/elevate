@@ -20,15 +20,6 @@ sub _build_pkgmgr {
     return '/usr/bin/dnf';
 }
 
-sub install_epel ($self) {
-    my $pkgmgr       = $self->pkgmgr;
-    my $epel_rpm_url = 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm';
-
-    $self->cpev->ssystem_and_die( $pkgmgr, '-y', 'install', $epel_rpm_url );
-
-    return;
-}
-
 sub config_manager_enable ( $self, $repo ) {
     my $pkgmgr = $self->pkgmgr;
 

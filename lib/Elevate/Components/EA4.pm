@@ -75,7 +75,7 @@ sub post_leapp ($self) {
 sub _cleanup_rpm_db ($self) {
 
     # remove all ea- packages
-    $self->yum->erase('ea-*');
+    $self->yum->remove('ea-*');
 
     return;
 }
