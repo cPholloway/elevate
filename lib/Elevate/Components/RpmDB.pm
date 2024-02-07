@@ -50,8 +50,10 @@ sub _sysup ($self) {
     Cpanel::Yum::Vars::install();
     $self->dnf->clean_all();
 
+    my $epel_url = 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm';
+
     # no failures once already installed: no need to check for the epel-release version
-    $self->dnf->install_epel();
+    $self->dnf->install_rpm_via_url($epel_url);
 
     $self->dnf->config_manager_enable('powertools');
     $self->dnf->config_manager_enable('epel');

@@ -73,8 +73,8 @@ sub check_for_old_centos7 () {
     return instance()->check_for_old_centos7();
 }
 
-sub get_default_upgrade_to () {
-    return instance()->get_default_upgrade_to();
+sub default_upgrade_to () {
+    return instance()->default_upgrade_to();
 }
 
 sub get_available_upgrade_paths {
@@ -121,6 +121,22 @@ sub leapp_can_handle_kernelcare () {
 
 sub ea_alias () {
     return instance()->ea_alias();
+}
+
+sub elevate_rpm_url () {
+    return instance()->elevate_rpm_url();
+}
+
+sub leapp_data_pkg () {
+    return instance()->leapp_data_pkg();
+}
+
+sub upgrade_to () {
+    return instance()->upgrade_to();
+}
+
+sub leapp_flag () {
+    return instance()->leapp_flag();
 }
 
 1;

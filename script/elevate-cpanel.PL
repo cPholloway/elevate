@@ -218,7 +218,6 @@ BEGIN {
 use Log::Log4perl qw(:easy);
 
 use Config;
-use Config::Tiny          ();
 use Carp                  ();
 use Errno                 ();
 use File::Basename        ();
@@ -300,6 +299,7 @@ use Elevate::OS::CentOS7     ();
 use Elevate::OS::CloudLinux7 ();
 
 use Elevate::Fetch            ();
+use Elevate::Leapp            ();
 use Elevate::Logger           ();
 use Elevate::Motd             ();
 use Elevate::Notify           ();
@@ -324,9 +324,6 @@ use constant VALID_STAGES => 5;
 
 use constant IGNORE_OUTDATED_SERVICES_FILE => q[/etc/cpanel/local/ignore_outdated_services];
 
-use constant LEAPP_REPORT_JSON => q[/var/log/leapp/leapp-report.json];
-use constant LEAPP_REPORT_TXT  => q[/var/log/leapp/leapp-report.txt];
-
 use constant NOC_RECOMMENDATIONS_TOUCH_FILE => q[/var/cpanel/elevate-noc-recommendations];
 
 # XXX TODO verify that imunify reponames are in fact correct.
@@ -346,6 +343,7 @@ use Simple::Accessor qw{
   service
   script
   blockers
+  leapp
 };
 
 # after Simple::Accessor
@@ -366,6 +364,12 @@ sub _build_blockers ($self) {
 
     # FIXME weaken
     return Elevate::Blockers->new( cpev => $self );
+}
+
+sub _build_leapp ($self) {
+
+    # FIXME weaken
+    return Elevate::Leapp->new( cpev => $self );
 }
 
 sub _build_script ($self) {
@@ -464,7 +468,7 @@ sub _parse_opt_upgrade_to ($self) {
 
     Elevate::Blockers::Distros::bail_out_on_inappropriate_distro();
 
-    $flavor ||= Elevate::OS::get_default_upgrade_to();
+    $flavor ||= Elevate::OS::default_upgrade_to();
 
     $flavor = lc $flavor;
     if ( !Elevate::OS::can_upgrade_to($flavor) ) {
@@ -522,10 +526,7 @@ sub do_update ($self) {
 }
 
 sub upgrade_to ($self) {    # main helper to know the upgrade_to distro
-    return $self->{upgrade_to} if $self->{upgrade_to};
-
-    my $default = Elevate::OS::get_default_upgrade_to();
-    return read_stage_file( 'upgrade_to', $default );
+    return $self->{upgrade_to} ? $self->{upgrade_to} : Elevate::OS::upgrade_to();
 }
 
 sub upgrade_to_rocky ($self) {
@@ -1059,8 +1060,13 @@ sub run_stage_3 ($self) {
         return $self->_request_to_upgrade_distro_manually();
     }
 
-    $self->run_once('_install_leapp');
-    $self->_do_leapp_upgrade();
+    $self->run_once(
+        install_leapp => sub {
+            $self->leapp->install();
+        },
+    );
+
+    $self->leapp->upgrade();
 
     WARN(<<~'EOS');
     Rebooting for distro upgrade. This will take over 10 minutes to run.
@@ -1070,28 +1076,6 @@ sub run_stage_3 ($self) {
     return ACTION_REBOOT_NEEDED;
 
     # This takes a while because on reboot it's installing 800 packages
-}
-
-sub _install_leapp ($self) {
-
-    unless ( Cpanel::Pkgr::is_installed('elevate-release') ) {
-
-        # provides leapp-data-almalinux & leapp-data-rocky
-        $self->ssystem_and_die(qw{/usr/bin/yum install -y http://repo.almalinux.org/elevate/elevate-release-latest-el7.noarch.rpm});
-    }
-
-    # TODO: Fix this via RE-145
-    my $leap_data_pkg = $self->upgrade_to_rocky() ? 'leapp-data-rocky' : 'leapp-data-almalinux';
-
-    unless ( Cpanel::Pkgr::is_installed('leapp-upgrade') && Cpanel::Pkgr::is_installed($leap_data_pkg) ) {
-        $self->ssystem_and_die( qw{/usr/bin/yum install -y leapp-upgrade }, $leap_data_pkg );
-    }
-
-    if ( Cpanel::Pkgr::is_installed('kernel-devel') ) {
-        $self->ssystem_and_die(qw{/usr/bin/yum -y remove kernel-devel});
-    }
-
-    return;
 }
 
 sub _request_to_upgrade_distro_manually ($self) {
@@ -1188,7 +1172,7 @@ sub run_stage_4 ($self) {
     $self->post_leapp_update_restore();
 
     my @known_modules_that_dont_convert = qw{libtermkey msgpack btrfs-progs elevate-release
-      leapp leapp-data-almalinux leapp-data-rocky leapp-upgrade-el7toel8
+      leapp leapp-data-almalinux leapp-data-rocky leapp-data-cloudlinux leapp-upgrade-el7toel8
       python2-leapp alt-pcre802 alt-pcre802-devel};
     my @to_remove = grep { Cpanel::Pkgr::is_installed($_) } @known_modules_that_dont_convert;
 
@@ -1466,76 +1450,6 @@ sub disable_all_cpanel_services ($self) {
     return;
 }
 
-sub _do_leapp_upgrade ($self) {
-
-    return unless $self->should_run_leapp();
-
-    $self->run_once('setup_answer_file');
-
-    INFO("Running leapp upgrade");
-
-    my $ok = eval {
-        local $ENV{LEAPP_OVL_SIZE} = read_stage_file('env')->{'LEAPP_OVL_SIZE'} || 3000;
-        $self->ssystem_and_die( { keep_env => 1 }, qw{/usr/bin/leapp upgrade} );
-        1;
-    };
-
-    return 1 if $ok;
-
-    my $msg = <<'EOS';
-The 'leapp upgrade' process failed.
-
-Please investigate, resolve then re-run the following command to continue the update:
-
-    /scripts/elevate-cpanel --continue
-
-EOS
-
-    my $leapp_json_report = LEAPP_REPORT_JSON;
-    if ( -e $leapp_json_report ) {
-        my $report = eval { Cpanel::JSON::LoadFile($leapp_json_report) } // {};
-
-        my $entries = $report->{entries};
-        if ( ref $entries eq 'ARRAY' ) {
-            foreach my $e (@$entries) {
-                next unless ref $e && $e->{title} =~ qr{Missing.*answer}i;
-
-                $msg .= $e->{summary} if $e->{summary};
-
-                if ( ref $e->{detail} ) {
-                    my $d = $e->{detail};
-
-                    if ( ref $d->{remediations} ) {
-                        foreach my $remed ( $d->{remediations}->@* ) {
-                            next unless $remed->{type} && $remed->{type} eq 'command';
-                            next unless ref $remed->{context};
-                            my @hint = $remed->{context}->@*;
-                            next unless scalar @hint;
-                            $hint[0] = q[/usr/bin/leapp] if $hint[0] && $hint[0] eq 'leapp';
-                            my $cmd = join( ' ', @hint );
-
-                            $msg .= "\n\n";
-                            $msg .= <<"EOS";
-Consider running this command:
-
-    $cmd
-EOS
-                        }
-                    }
-
-                }
-
-            }
-        }
-    }
-
-    if ( -e LEAPP_REPORT_TXT ) {
-        $msg .= qq[\nYou can read the full leapp report at: ] . LEAPP_REPORT_TXT;
-    }
-
-    die qq[$msg\n];
-}
-
 # remove and store
 sub run_final_components_pre_leapp ($self) {
 
@@ -1711,33 +1625,6 @@ sub post_upgrade_check ($self) {
     [remove_pam_pkcs11_module_check]
     confirm=True
 =cut
-
-sub setup_answer_file {
-    my $leapp_dir = '/var/log/leapp';
-    mkdir $leapp_dir unless -d $leapp_dir;
-
-    my $answerfile_path = $leapp_dir . '/answerfile';
-    system touch => $answerfile_path unless -e $answerfile_path;
-
-    my $do_write;    # no point in overwriting the file if nothing needs to change
-
-    my $ini_obj = Config::Tiny->read( $answerfile_path, 'utf8' );
-    LOGDIE( 'Failed to read leapp answerfile: ' . Config::Tiny->errstr ) unless $ini_obj;
-
-    my $SECTION = 'remove_pam_pkcs11_module_check';
-
-    if ( not defined $ini_obj->{$SECTION}->{'confirm'} or $ini_obj->{$SECTION}->{'confirm'} ne 'True' ) {
-        $do_write = 1;
-        $ini_obj->{$SECTION}->{'confirm'} = 'True';
-    }
-
-    if ($do_write) {
-        $ini_obj->write( $answerfile_path, 'utf8' )    #
-          or LOGDIE( 'Failed to write leapp answerfile: ' . $ini_obj->errstr );
-    }
-
-    return;
-}
 
 # TODO: We're going to need to store reboot time so we know if the last reboot has happened when we re-run the script.
 
