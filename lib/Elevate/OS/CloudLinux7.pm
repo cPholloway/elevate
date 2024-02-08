@@ -23,7 +23,7 @@ sub _build_elevate_rpm_url ($self) {
 }
 
 sub _build_default_upgrade_to ($self) {
-    return 'cloudlinux';
+    return 'CloudLinux';
 }
 
 sub _build_leapp_can_handle_epel ($self) {
