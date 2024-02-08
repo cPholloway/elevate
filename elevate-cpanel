@@ -1518,9 +1518,13 @@ EOS
     our @ISA;
     BEGIN { push @ISA, qw(Elevate::Blockers::Base); }
 
+    use Elevate::OS ();
+
     use Cpanel::Pkgr ();
 
     sub check ($self) {
+        return if Elevate::OS::leapp_can_handle_python36();
+
         my $pkg = Cpanel::Pkgr::what_provides('python36');
         return unless $pkg && Cpanel::Pkgr::is_installed($pkg);
         return $self->has_blocker( <<~"END" );
@@ -1614,8 +1618,6 @@ EOS
       cl-mysql-meta
       cloudlinux-elevate
       cloudlinux-rollout
-      cloudlinux-x86_64-server
-      cloudlinux-x86_64-server-updates
     };
 
     use constant VETTED_YUM_REPO => qw{
@@ -4326,6 +4328,10 @@ EOS
         return instance()->leapp_flag();
     }
 
+    sub leapp_can_handle_python36 () {
+        return instance()->leapp_can_handle_python36();
+    }
+
     1;
 
 }    # --- END lib/Elevate/OS.pm
@@ -4346,6 +4352,7 @@ EOS
       leapp_can_handle_epel
       leapp_can_handle_imunify
       leapp_can_handle_kernelcare
+      leapp_can_handle_python36
       leapp_data_pkg
       leapp_flag
       name
@@ -4373,6 +4380,10 @@ EOS
     }
 
     sub _build_leapp_can_handle_kernelcare ($self) {
+        return 0;
+    }
+
+    sub _build_leapp_can_handle_python36 ($self) {
         return 0;
     }
 
@@ -4461,6 +4472,10 @@ EOS
     }
 
     sub _build_leapp_can_handle_kernelcare ($self) {
+        return 1;
+    }
+
+    sub _build_leapp_can_handle_python36 ($self) {
         return 1;
     }
 
@@ -5678,7 +5693,14 @@ package cpev;
 
 =head1 DESCRIPTION
 
-Helps to upgrade CentOS 7 cPanel servers to AlmaLinux 8 or Rocky Linux 8.
+Wrapper around the ELevate project which is designed to enable migrations
+between major version of RHEL® derivatives.
+
+Currently supported upgrade paths:
+
+CentOS 7     => AlmaLinux 8
+CentOS 7     => Rocky Linux 8
+CloudLinux 7 => CloudLinux 8
 
 =head1 SYNOPSIS
 
@@ -7252,8 +7274,7 @@ sub post_upgrade_check ($self) {
 
     unless ( Cpanel::OS::major() == 8 && Cpanel::OS::distro() eq $expect_distro ) {
         my $pretty_distro_name = $self->upgrade_to_pretty_name();
-        FATAL("Your distro does not look like $pretty_distro_name.");
-        return 1;
+        die "Your distro does not look like $pretty_distro_name.\n";
     }
 
     # call a cpanel binary

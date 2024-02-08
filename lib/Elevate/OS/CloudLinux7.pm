@@ -38,6 +38,10 @@ sub _build_leapp_can_handle_kernelcare ($self) {
     return 1;
 }
 
+sub _build_leapp_can_handle_python36 ($self) {
+    return 1;
+}
+
 sub _build_leapp_data_pkg ($self) {
     return 'leapp-data-cloudlinux';
 }

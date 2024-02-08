@@ -70,9 +70,6 @@ use constant VETTED_MYSQL_YUM_REPO_IDS => qw{
   MariaDB106
 };
 
-# cloudlinux-x86_64-server and cloudlinux-x86_64-server-updates
-# are for cPanel's internal mirror
-# Without this, openstack upgrades will get caught by this blocker
 use constant VETTED_CLOUDLINUX_YUM_REPO => qw{
   cloudlinux
   cloudlinux-base
@@ -87,8 +84,6 @@ use constant VETTED_CLOUDLINUX_YUM_REPO => qw{
   cl-mysql-meta
   cloudlinux-elevate
   cloudlinux-rollout
-  cloudlinux-x86_64-server
-  cloudlinux-x86_64-server-updates
 };
 
 use constant VETTED_YUM_REPO => qw{
