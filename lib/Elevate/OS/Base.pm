@@ -21,6 +21,7 @@ use Simple::Accessor qw{
   leapp_can_handle_epel
   leapp_can_handle_imunify
   leapp_can_handle_kernelcare
+  leapp_can_handle_python36
   leapp_data_pkg
   leapp_flag
   name
@@ -50,6 +51,10 @@ sub _build_leapp_can_handle_imunify ($self) {
 }
 
 sub _build_leapp_can_handle_kernelcare ($self) {
+    return 0;
+}
+
+sub _build_leapp_can_handle_python36 ($self) {
     return 0;
 }
 

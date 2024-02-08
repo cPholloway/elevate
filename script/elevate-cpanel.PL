@@ -35,7 +35,14 @@ package cpev;
 
 =head1 DESCRIPTION
 
-Helps to upgrade CentOS 7 cPanel servers to AlmaLinux 8 or Rocky Linux 8.
+Wrapper around the ELevate project which is designed to enable migrations
+between major version of RHEL® derivatives.
+
+Currently supported upgrade paths:
+
+CentOS 7     => AlmaLinux 8
+CentOS 7     => Rocky Linux 8
+CloudLinux 7 => CloudLinux 8
 
 =head1 SYNOPSIS
 
@@ -1611,8 +1618,7 @@ sub post_upgrade_check ($self) {
 
     unless ( Cpanel::OS::major() == 8 && Cpanel::OS::distro() eq $expect_distro ) {
         my $pretty_distro_name = $self->upgrade_to_pretty_name();
-        FATAL("Your distro does not look like $pretty_distro_name.");
-        return 1;
+        die "Your distro does not look like $pretty_distro_name.\n";
     }
 
     # call a cpanel binary

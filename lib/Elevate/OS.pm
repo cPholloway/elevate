@@ -139,4 +139,8 @@ sub leapp_flag () {
     return instance()->leapp_flag();
 }
 
+sub leapp_can_handle_python36 () {
+    return instance()->leapp_can_handle_python36();
+}
+
 1;
