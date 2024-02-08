@@ -1197,7 +1197,7 @@ The elevate-cpanel service is now removed.
 =cut
 
 sub run_stage_5 ($self) {
-    return 1 if $self->post_upgrade_check();
+    return 0 if $self->post_upgrade_check();
 
     # we cannot stop the service ( ourself )
     $self->service->disable;
@@ -1604,12 +1604,12 @@ sub remove_rpms_from_repos ( $self, @repo_list ) {
 
 sub post_upgrade_check ($self) {
 
-    # TODO: Fix this via RE-150
-    my $expect_distro = $self->upgrade_to_rocky() ? 'rocky' : 'almalinux';
+    my $expect_distro = Elevate::OS::upgrade_to();
+    $expect_distro = lc $expect_distro;
 
     unless ( Cpanel::OS::major() == 8 && Cpanel::OS::distro() eq $expect_distro ) {
         my $pretty_distro_name = $self->upgrade_to_pretty_name();
-        FATAL("Your distro does not looks like $pretty_distro_name.");
+        FATAL("Your distro does not look like $pretty_distro_name.");
         return 1;
     }
 
