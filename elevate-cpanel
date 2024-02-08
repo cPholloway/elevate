@@ -5733,6 +5733,9 @@ CloudLinux 7 => CloudLinux 8
                                                  Once leapp has been run you should remove the file
                                                  /waiting_for_distro_upgrade
 
+       --manual-reboots                          The script will stop and require the user to reboot manually rather than
+                                                 automatically rebooting when reboots are needed
+
        --help                                    Display this documentation.
 
 =head1 COMMON USAGE
@@ -5817,7 +5820,7 @@ the update process by running:
 
 =head3 Using an alternative tool to upgrade your distro
 
-By default, the elevate script runs the [leapp process](https://almalinux.org/elevate/)
+By default, the elevate script runs the L<leapp process|https://almalinux.org/elevate/>
 to upgrade you from 7 to 8. `Leapp` may not be compatible with your system.
 
 Using the `--no-leapp` option gives you a way to do the actual distro upgrade in your own way.
@@ -5849,8 +5852,7 @@ NOTE: `--no-leapp` is not required for helper commands like `--continue` or `--s
 
 =head1 WARNINGS
 
-The elevation process from CentOS 7 to AlmaLinux 8 or Rocky Linux 8 distribution
-is not a risk free update.
+The elevation process to perform a major OS upgrade is not a risk free update.
 Depending on the state of your current distribution multiple errors can occur.
 We recommend updating your system to the last upstream state before starting.
 
@@ -6705,15 +6707,16 @@ sub run_stage_2 ($self) {
 
 =head2 run_stage_3
 
-Setup the AlmaLinux elevate-release-latest-el7 repo and install leapp packages.
-Prepare the cPanel packages for the update.
+Setup the elevate-release-latest-el7 repo from the appropriate fork and install
+leapp Packages.  Prepare the cPnael packages for the update.
 
 Remove some known conflicting packages. (Reinstall later).
 
 Provide answers to a few leapp questions.
 
 Attempt to perform the leapp upgrade itself.
-In case of failure you probably want to reply to a few extra questions or remove some conflicting packages.
+In case of failure you probably want to reply to a few extra questions or remove
+some conflicting packages.
 
 =cut
 
@@ -6764,7 +6767,7 @@ EOS
 
 =head2 run_stage_4
 
-At this stage we should now run Alamalinux 8.
+At this stage, we should now be run the upgraded OS (i.e. AlmaLinux 8).
 Update cPanel product for the new distro.
 
 Restore removed packages during the previous stage.
@@ -6925,14 +6928,6 @@ sub elevation_success_marker ($self) {
 
     return;
 }
-
-=pod
-
-Example:
-
-    $self->run_component_once( Imunify => 'backup' );
-
-=cut
 
 sub run_component_once ( $self, $name, $function ) {
 
@@ -7282,13 +7277,6 @@ sub post_upgrade_check ($self) {
 
     return 0;
 }
-
-=pod
-
-    > cat /var/log/leapp/answerfile
-    [remove_pam_pkcs11_module_check]
-    confirm=True
-=cut
 
 # TODO: We're going to need to store reboot time so we know if the last reboot has happened when we re-run the script.
 
