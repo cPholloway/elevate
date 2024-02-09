@@ -4271,6 +4271,9 @@ EOS
     # use Log::Log4perl qw(:easy);
     INIT { Log::Log4perl->import(qw{:easy}); }
 
+    use Elevate::OS::CentOS7;
+    use Elevate::OS::CloudLinux7;
+
     use constant SUPPORTED_DISTROS => qw{
       CentOS7
       CloudLinux7
@@ -4301,7 +4304,9 @@ EOS
         my $distro;
         my $major;
         if ( !$distro_with_version ) {
-            $distro              = Cpanel::OS::pretty_distro();
+            $distro              = Cpanel::OS::distro();
+            $distro              = 'CentOS'     if $distro eq 'centos';
+            $distro              = 'CloudLinux' if $distro eq 'cloudlinux';
             $major               = Cpanel::OS::major();
             $distro_with_version = $distro . $major;
         }
@@ -4349,6 +4354,10 @@ EOS
 
     sub name () {
         return instance()->name();
+    }
+
+    sub pretty_name () {
+        return instance()->pretty_name();
     }
 
     sub can_upgrade_to ($flavor) {
@@ -4424,6 +4433,7 @@ EOS
       leapp_data_pkg
       leapp_flag
       name
+      pretty_name
       upgrade_to
     };
 
@@ -4463,6 +4473,10 @@ EOS
         die "subclass must implement name\n";
     }
 
+    sub _build_pretty_name ($self) {
+        die "subclass must implment pretty_name\n";
+    }
+
     sub _build_upgrade_to ($self) {
         my $default = $self->default_upgrade_to();
         return cpev::read_stage_file( 'upgrade_to', $default );
@@ -4500,6 +4514,10 @@ EOS
 
     sub _build_name ($self) {
         return 'CentOS7';
+    }
+
+    sub _build_pretty_name ($self) {
+        return 'CentOS 7';
     }
 
     1;
@@ -4557,6 +4575,10 @@ EOS
 
     sub _build_name ($self) {
         return 'CloudLinux7';
+    }
+
+    sub _build_pretty_name ($self) {
+        return 'CloudLinux 7';
     }
 
     1;
@@ -6570,10 +6592,11 @@ sub check_status ($self) {
 
 sub _notify_success ($self) {
 
+    my $upgrade_from_name  = Elevate::OS::pretty_name();
     my $pretty_distro_name = $self->upgrade_to_pretty_name();
 
     my $msg = <<"EOS";
-The cPanel & WHM server has completed the elevation process from CentOS 7 to $pretty_distro_name.
+The cPanel & WHM server has completed the elevation process from $upgrade_from_name to $pretty_distro_name.
 EOS
 
     if ( my $warnings = read_stage_file( 'final_notifications', [] ) ) {

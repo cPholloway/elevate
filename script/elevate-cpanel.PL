@@ -844,10 +844,11 @@ sub check_status ($self) {
 
 sub _notify_success ($self) {
 
+    my $upgrade_from_name  = Elevate::OS::pretty_name();
     my $pretty_distro_name = $self->upgrade_to_pretty_name();
 
     my $msg = <<"EOS";
-The cPanel & WHM server has completed the elevation process from CentOS 7 to $pretty_distro_name.
+The cPanel & WHM server has completed the elevation process from $upgrade_from_name to $pretty_distro_name.
 EOS
 
     if ( my $warnings = read_stage_file( 'final_notifications', [] ) ) {

@@ -54,4 +54,8 @@ sub _build_name ($self) {
     return 'CloudLinux7';
 }
 
+sub _build_pretty_name ($self) {
+    return 'CloudLinux 7';
+}
+
 1;

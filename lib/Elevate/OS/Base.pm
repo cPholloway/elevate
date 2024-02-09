@@ -25,6 +25,7 @@ use Simple::Accessor qw{
   leapp_data_pkg
   leapp_flag
   name
+  pretty_name
   upgrade_to
 };
 
@@ -64,6 +65,10 @@ sub _build_leapp_data_pkg ($self) {
 
 sub _build_name ($self) {
     die "subclass must implement name\n";
+}
+
+sub _build_pretty_name ($self) {
+    die "subclass must implment pretty_name\n";
 }
 
 sub _build_upgrade_to ($self) {

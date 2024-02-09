@@ -31,4 +31,8 @@ sub _build_name ($self) {
     return 'CentOS7';
 }
 
+sub _build_pretty_name ($self) {
+    return 'CentOS 7';
+}
+
 1;

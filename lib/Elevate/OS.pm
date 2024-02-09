@@ -14,6 +14,9 @@ use cPstrict;
 
 use Log::Log4perl qw(:easy);
 
+use Elevate::OS::CentOS7;
+use Elevate::OS::CloudLinux7;
+
 use constant SUPPORTED_DISTROS => qw{
   CentOS7
   CloudLinux7
@@ -44,7 +47,9 @@ sub factory {
     my $distro;
     my $major;
     if ( !$distro_with_version ) {
-        $distro              = Cpanel::OS::pretty_distro();
+        $distro              = Cpanel::OS::distro();
+        $distro              = 'CentOS'     if $distro eq 'centos';
+        $distro              = 'CloudLinux' if $distro eq 'cloudlinux';
         $major               = Cpanel::OS::major();
         $distro_with_version = $distro . $major;
     }
@@ -92,6 +97,10 @@ sub get_available_upgrade_paths {
 
 sub name () {
     return instance()->name();
+}
+
+sub pretty_name () {
+    return instance()->pretty_name();
 }
 
 sub can_upgrade_to ($flavor) {
