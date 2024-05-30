@@ -87,19 +87,7 @@ sub install ($self) {
     $self->ssystem_and_die( '/usr/bin/systemctl', 'daemon-reload' );
     $self->ssystem_and_die( '/usr/bin/systemctl', 'enable', $name );
 
-    Elevate::Stages::bump_stage();
-
-    my $pid = fork();
-    die qq[Failed to fork: $!] unless defined $pid;
-    if ($pid) {
-        INFO("Starting service $name");
-        return 0;
-    }
-    else {
-        unlink(Elevate::Constants::PID_FILE);    # release the pid so the service can use it
-        $self->ssystem_and_die( '/usr/bin/systemctl', 'start', $name );
-        exit(0);
-    }
+    return 0;
 }
 
 sub disable ($self) {

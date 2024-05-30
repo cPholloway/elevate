@@ -35,7 +35,7 @@ sub check ($self) {
         my ( $running_version, $boot_version ) = Cpanel::Kernel::Status::reboot_status()->@{ 'running_version', 'boot_version' };
         $ok = $running_version eq $boot_version;
 
-        $self->has_blocker( <<~EOS ) if !$ok;
+        WARN( <<~"EOS" ) if !$ok;
         The running kernel version ($running_version) does not match that of
         the default boot entry ($boot_version). This could be due to the kernel
         being changed by an update, meaning that a reboot should resolve this.

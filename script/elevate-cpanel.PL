@@ -933,7 +933,9 @@ sub run_stage_1 ($self) {
 
     print_box( "Starting stage 1 of " . VALID_STAGES . ": Installing " . $self->service->name . " service" );
 
-    return $self->service->install();
+    $self->service->install();
+
+    return ACTION_REBOOT_NEEDED;
 }
 
 =head2 run_stage_2
@@ -947,6 +949,10 @@ sub run_stage_2 ($self) {
     Elevate::Marker::startup();
 
     Elevate::Motd->setup();
+
+    # This needs to happen before yum update because it could update the kernel
+    # which will break the assumption that we just rebooted
+    $self->run_component_once( 'Kernel' => 'pre_leapp' );
 
     $self->ssystem(qw{/usr/bin/yum clean all});
     $self->ssystem_and_die(qw{/scripts/update-packages});

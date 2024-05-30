@@ -12,16 +12,37 @@ Perform some kernel checks.
 
 use cPstrict;
 
-use Elevate::Constants ();
+use Cpanel::Kernel::Status ();
 
-use Cwd           ();
 use Log::Log4perl qw(:easy);
 
 use parent qw{Elevate::Components::Base};
 
 sub pre_leapp ($self) {
 
-    # nothing to do
+    return 1 unless $self->should_run_leapp;    # skip when --no-leapp is provided
+
+    my ( $running_version, $boot_version ) = Cpanel::Kernel::Status::reboot_status()->@{ 'running_version', 'boot_version' };
+
+    die( <<~"EOS" ) unless $running_version eq $boot_version;
+    The running kernel version ($running_version) does not match that of
+    the default boot entry ($boot_version) after a reboot.  This indicates
+    that the system does not have control over which kernel and early boot
+    environment (initrd) is used upon reboot, which is required to upgrade
+    the operating system with this script.
+
+    Since the server was rebooted just prior to this check, your server
+    may be configured to boot into a particular kernel directly rather than
+    to an instance of the GRUB2 boot loader.  This often happens to
+    virtualized servers, but physical servers also can have this problem
+    under certain configurations.  Your provider may have a solution to
+    allow booting into GRUB2; contact them for further information.
+
+    Once this issue has been resolved, you can continue the elevation
+    process by executing:
+
+    /scripts/elevate-cpanel --continue
+    EOS
 
     return;
 }
