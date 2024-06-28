@@ -28,10 +28,29 @@ use constant FIX_RPM_SCRIPT               => '/usr/local/cpanel/scripts/find_and
 
 sub check ($self) {
     my $ok = 1;
+    $ok = 0 if $self->_blocker_packages_installed_without_associated_repo;
     $ok = 0 if $self->_blocker_invalid_yum_repos;
     $ok = 0 if $self->_yum_is_stable();
 
     return $ok;
+}
+
+sub _blocker_packages_installed_without_associated_repo ($self) {
+    my $installed = cpev::yum_list();
+
+    return unless exists $installed->{installed_without_associated_repo};
+
+    my @installed_without_associated_repo;
+    foreach my $pkg_info ( $installed->{installed_without_associated_repo}->@* ) {
+        push @installed_without_associated_repo, $pkg_info->{package};
+    }
+
+    my $packages = join "\n", @installed_without_associated_repo;
+    return $self->has_blocker( <<~EOS );
+    This error message needs to be fixed but will do for now:
+
+    $packages
+    EOS
 }
 
 sub _blocker_invalid_yum_repos ($self) {

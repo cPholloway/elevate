@@ -1398,9 +1398,21 @@ sub yum_list ( $invalidate_cache = 0 ) {    # FIXME isolate to its own namespace
         }
         length $repo or next;    # We screwed up the parse. move on.
 
-        $repo =~ s/^\@// or next;
+        $repo =~ s/^\@//;
         $repos{$repo} ||= [];
-        next if $repo eq 'installed';    # Not installed from a repo.
+
+        # We need to know about any packages installed without an associated
+        # repo so that we can block if anything unexpected is installed
+        # without an associated repo
+        if ( $repo eq 'installed' ) {
+
+            # Packages installed via rpm.versions will not have
+            # an associated repo but all of these package names
+            # should be prefixed with 'cpanel-'
+            next if $package =~ /^cpanel-/;
+
+            $repo = 'installed_without_associated_repo';
+        }
 
         $package =~ s/\.(noarch|x86_64)$//;
         my $arch = $1 // '?';
