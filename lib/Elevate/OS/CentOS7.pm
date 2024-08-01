@@ -29,6 +29,7 @@ sub vetted_yum_repo ($self) {
 
     # A component uninstalls this repo on CentOS 7, no need to block on it
     push @repos, qr/centos7[-]*els(-rollout-[0-9]+|)/;
+    push @repos, 'elevate-testing';
     return @repos;
 }
 

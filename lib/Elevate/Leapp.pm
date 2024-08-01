@@ -17,11 +17,13 @@ use Cpanel::JSON     ();
 use Cpanel::LoadFile ();
 use Cpanel::Pkgr     ();
 
+use Elevate::Fetch     ();
 use Elevate::OS        ();
 use Elevate::StageFile ();
 use Elevate::YUM       ();
 
 use Config::Tiny ();
+use File::Copy   ();
 
 use Log::Log4perl qw(:easy);
 
@@ -53,6 +55,12 @@ sub install ($self) {
         $self->yum->install_rpm_via_url($elevate_rpm_url);
         $self->beta_if_enabled;    # If --leappbeta was passed, then enable it.
     }
+
+    # TODO
+    # Install ELevate testing repo
+    my $repo_file = Elevate::Fetch::script( 'https://repo.almalinux.org/elevate/testing/elevate-testing.repo', 'elevate-testing', '.repo' );
+    File::Copy::move( $repo_file, '/etc/yum.repos.d/elevate-testing.repo' );
+    $self->cpev->ssystem_and_die( '/usr/bin/rpm', '--import', 'https://repo.almalinux.org/elevate/RPM-GPG-KEY-ELevate' );
 
     my $leapp_data_pkg = Elevate::OS::leapp_data_pkg();
 
