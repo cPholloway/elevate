@@ -175,7 +175,6 @@ BEGIN {    # Suppress load of all of these at earliest point.
     BEGIN {
         my @_DELEGATE_TO_CPEV = qw{
           getopt
-          upgrade_to_pretty_name
           should_perform_upgrade
           ssystem
           ssystem_capture_output
@@ -638,7 +637,7 @@ BEGIN {    # Suppress load of all of these at earliest point.
 
         return 0 if length $db_version && $db_version >= 55;
 
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
         $db_type = Elevate::Database::pretty_type_name($db_type);
 
         $db_version =~ s/([0-9])$/\.$1/;
@@ -667,7 +666,7 @@ BEGIN {    # Suppress load of all of these at earliest point.
             return 0;
         }
 
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
         $db_type = Elevate::Database::get_database_type_name_from_version($db_version);
         my $upgrade_version     = Elevate::Database::get_default_upgrade_version();
         my $upgrade_dbtype_name = Elevate::Database::get_database_type_name_from_version($upgrade_version);
@@ -752,6 +751,8 @@ BEGIN {    # Suppress load of all of these at earliest point.
 
     use Cpanel::SafeRun::Simple ();
 
+    use Elevate::OS ();
+
     # use Elevate::Blockers::Base();
     our @ISA;
     BEGIN { push @ISA, qw(Elevate::Blockers::Base); }
@@ -820,7 +821,7 @@ BEGIN {    # Suppress load of all of these at earliest point.
 
         my $details = join( "\n", @errors );
 
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
 
         my $error = <<"EOS";
 ** Warning **: your system does not have enough disk space available to update to $pretty_distro_name
@@ -882,7 +883,7 @@ EOS
         return if Elevate::OS::skip_minor_version_check();
 
         if ( Cpanel::OS::minor() < MINIMUM_CENTOS_7_SUPPORTED ) {    ## no critic(Cpanel::CpanelOS)
-            my $pretty_distro_name = $self->upgrade_to_pretty_name();
+            my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
             return $self->has_blocker(
                 sprintf(
                     'You need to run CentOS 7.%s and later to upgrade %s. You are currently using %s',    #
@@ -919,6 +920,7 @@ EOS
     use cPstrict;
 
     use Elevate::Constants ();
+    use Elevate::OS        ();
 
     # use Elevate::Blockers::Base();
     our @ISA;
@@ -945,7 +947,7 @@ EOS
     sub _blocker_non_bind_powerdns ( $self, $nameserver = '' ) {
 
         if ( $nameserver eq 'nsd' or $nameserver eq 'mydns' ) {
-            my $pretty_distro_name = $self->upgrade_to_pretty_name();
+            my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
             return $self->has_blocker( <<~"EOS");
         $pretty_distro_name only supports bind or powerdns. We suggest you switch to powerdns.
         Before upgrading, we suggest you run: /scripts/setupnameserver powerdns.
@@ -967,6 +969,7 @@ EOS
 
     use Elevate::Constants ();
     use Elevate::EA4       ();
+    use Elevate::OS        ();
     use Elevate::StageFile ();
 
     use Cpanel::JSON            ();
@@ -991,7 +994,7 @@ EOS
 
     sub _blocker_ea4_profile ($self) {
 
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
 
         INFO("Checking EasyApache profile compatibility with $pretty_distro_name.");
 
@@ -1341,6 +1344,7 @@ EOS
     use cPstrict;
 
     use Elevate::Constants ();
+    use Elevate::OS        ();
 
     use Cpanel::JSON ();
 
@@ -1365,7 +1369,7 @@ EOS
 
         if ( !ref $license_data->{license} || !$license_data->{license}->{status} ) {
 
-            my $pretty_distro_name = $self->upgrade_to_pretty_name();
+            my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
             return $self->has_blocker( <<~"EOS");
         The Imunify license is reporting that it is not currently valid.  Since
         Imunify is installed on this system, a valid Imunify license is required
@@ -1432,6 +1436,7 @@ EOS
     use cPstrict;
 
     use Elevate::Constants ();
+    use Elevate::OS        ();
 
     # use Elevate::Blockers::Base();
     our @ISA;
@@ -1452,7 +1457,7 @@ EOS
 
         return 0 unless $self->_use_jetbackup4_or_earlier();
 
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
 
         return $self->has_blocker( <<~"END" );
     $pretty_distro_name does not support JetBackup prior to version 5.
@@ -1544,6 +1549,7 @@ EOS
 
     use Elevate::Constants ();
     use Elevate::NICs      ();
+    use Elevate::OS        ();
 
     # use Elevate::Blockers::Base();
     our @ISA;
@@ -1579,7 +1585,7 @@ EOS
 
             return if $self->_nics_have_missing_ifcfg_files(@eths);
 
-            my $pretty_distro_name = $self->upgrade_to_pretty_name();
+            my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
             WARN( <<~"EOS" );
         Prior to elevating this system to $pretty_distro_name, we will
         automatically rename these interfaces.
@@ -2271,6 +2277,7 @@ EOS
 
     use Elevate::Constants ();
     use Elevate::Notify    ();
+    use Elevate::OS        ();
 
     use Cpanel::Backup::Sync    ();
     use Cpanel::Version::Tiny   ();
@@ -2324,7 +2331,7 @@ EOS
     sub _blocker_is_newer_than_lts ($self) {
         my $major = $Cpanel::Version::Tiny::major_version;
         if ( $major != Elevate::OS::lts_supported() ) {
-            my $pretty_distro_name = $self->upgrade_to_pretty_name();
+            my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
             return $self->has_blocker(
                 sprintf(
                     "This version %s does not support upgrades to %s. Please ensure the cPanel version is %s.",
@@ -2584,7 +2591,6 @@ EOS
     BEGIN {
         my @_DELEGATE_TO_CPEV = qw{
           getopt
-          upgrade_to_pretty_name
           should_perform_upgrade
           ssystem
           ssystem_and_die
@@ -3466,6 +3472,7 @@ EOS
     use cPstrict;
 
     use Elevate::Constants ();
+    use Elevate::OS        ();
     use Elevate::StageFile ();
 
     use Cwd ();
@@ -3566,7 +3573,7 @@ EOS
             if ( !$detected ) {
 
                 my $stage              = Elevate::Stages::get_stage();
-                my $pretty_distro_name = $self->cpev->upgrade_to_pretty_name();
+                my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
                 my $msg                = <<"EOS";
 The elevation process failed during stage $stage.
 
@@ -4274,6 +4281,7 @@ EOS
     use cPstrict;
 
     use Elevate::Constants ();
+    use Elevate::OS        ();
 
     use Cwd ();
 
@@ -4304,7 +4312,7 @@ EOS
         return unless @kernel_rpms;
         chomp @kernel_rpms;
 
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
 
         my $msg = "The following kernels should probably be removed as they will not function on $pretty_distro_name:\n\n";
         foreach my $kernel (@kernel_rpms) {
@@ -4926,6 +4934,7 @@ EOS
 
     use Elevate::Constants ();
     use Elevate::Notify    ();
+    use Elevate::OS        ();
     use Elevate::StageFile ();
 
     use Config;
@@ -4992,7 +5001,7 @@ EOS
             }
         }
 
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
 
         my $stash = {};
         if (%rpms_to_restore) {
@@ -5360,6 +5369,8 @@ EOS
 
     use cPstrict;
 
+    use Elevate::OS ();
+
     # use Log::Log4perl qw(:easy);
     INIT { Log::Log4perl->import(qw{:easy}); }
 
@@ -5404,7 +5415,7 @@ EOS
 
         return unless @exclude_kernel_el7_installed_packages;
 
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
 
         my $msg = "The following packages should probably be removed as they will not function on $pretty_distro_name\n\n";
         foreach my $pkg (@exclude_kernel_el7_installed_packages) {
@@ -6326,6 +6337,7 @@ EOS
             'should_check_cloudlinux_license',    # This is used to determine if we should check the cloudlinux license
             'skip_minor_version_check',           # Used to determine if we need to skip the minor version check for the OS
             'supported_cpanel_mysql_versions',    # Returns array of supported mysql versions for the OS we are upgrading to
+            'upgrade_to_pretty_name',             # Returns the pretty name of the OS we are upgrading to (i.e. 'Ubuntu 22')
             'vetted_mysql_yum_repo_ids',          # This is a list of known mysql yum repo ids
             'vetted_yum_repo',                    # This is a list of known yum repos that we do not block on
         );
@@ -6378,14 +6390,15 @@ EOS
     our @ISA;
     BEGIN { push @ISA, qw(Elevate::OS::RHEL); }
 
-    use constant default_upgrade_to => 'AlmaLinux';
-    use constant ea_alias           => 'CentOS_8';
-    use constant elevate_rpm_url    => 'https://repo.almalinux.org/elevate/elevate-release-latest-el7.noarch.rpm';
-    use constant leapp_data_pkg     => 'leapp-data-almalinux';
-    use constant leapp_repo_prod    => 'elevate';
-    use constant name               => 'CentOS7';
-    use constant pretty_name        => 'CentOS 7';
-    use constant remove_els         => 1;
+    use constant default_upgrade_to     => 'AlmaLinux';
+    use constant ea_alias               => 'CentOS_8';
+    use constant elevate_rpm_url        => 'https://repo.almalinux.org/elevate/elevate-release-latest-el7.noarch.rpm';
+    use constant leapp_data_pkg         => 'leapp-data-almalinux';
+    use constant leapp_repo_prod        => 'elevate';
+    use constant name                   => 'CentOS7';
+    use constant pretty_name            => 'CentOS 7';
+    use constant remove_els             => 1;
+    use constant upgrade_to_pretty_name => 'AlmaLinux 8';
 
     sub vetted_yum_repo ($self) {
 
@@ -6425,6 +6438,7 @@ EOS
     use constant pretty_name                     => 'CloudLinux 7';
     use constant provides_mysql_governor         => 1;
     use constant should_check_cloudlinux_license => 1;
+    use constant upgrade_to_pretty_name          => 'CloudLinux 8';
 
     sub vetted_yum_repo ($self) {
         my @vetted_cloudlinux_yum_repo = (
@@ -6584,10 +6598,11 @@ EOS
     our @ISA;
     BEGIN { push @ISA, qw(Elevate::OS::Ubuntu); }
 
-    use constant default_upgrade_to => 'Ubuntu';
-    use constant ea_alias           => 'Ubuntu_20.04';
-    use constant name               => 'Ubuntu20';
-    use constant pretty_name        => 'Ubuntu 20.04';
+    use constant default_upgrade_to     => 'Ubuntu';
+    use constant ea_alias               => 'Ubuntu_20.04';
+    use constant name                   => 'Ubuntu20';
+    use constant pretty_name            => 'Ubuntu 20.04';
+    use constant upgrade_to_pretty_name => 'Ubuntu 22.04';
 
     1;
 
@@ -7935,6 +7950,7 @@ EOS
     use Cpanel::RestartSrv::Systemd ();
 
     use Elevate::Constants ();
+    use Elevate::OS        ();
 
     # use Log::Log4perl qw(:easy);
     INIT { Log::Log4perl->import(qw{:easy}); }
@@ -7977,16 +7993,17 @@ EOS
 
     sub install ($self) {
 
-        my $pretty_distro_name = $self->cpev->upgrade_to_pretty_name();
+        my $upgrade_from = Elevate::OS::pretty_name();
+        my $upgrade_to   = Elevate::OS::upgrade_to_pretty_name();
 
         my $name = $self->name;
 
-        INFO( "Installing service $name which will upgrade the server to " . $pretty_distro_name );
+        INFO( "Installing service $name which will upgrade the server to " . $upgrade_to );
         open( my $fh, '>', $self->file ) or die;
 
         print {$fh} <<~"EOF";
         [Unit]
-        Description=Upgrade process from CentOS 7 to $pretty_distro_name.
+        Description=Upgrade process from $upgrade_from to $upgrade_to.
         After=network.target network-online.target
 
         [Service]
@@ -9076,11 +9093,6 @@ sub do_update ($self) {
     return 0;
 }
 
-sub upgrade_to_pretty_name ($self) {    # used by output messages
-    return q[CloudLinux 8] if Elevate::OS::default_upgrade_to() eq 'CloudLinux';
-    return q[AlmaLinux 8];
-}
-
 sub monitor_upgrade ($self) {
     my $stage = Elevate::Stages::get_stage();
 
@@ -9173,7 +9185,7 @@ sub _capture_env_variables ($self) {
 sub give_last_chance ($self) {
 
     my $upgrade_from_name  = Elevate::OS::pretty_name();
-    my $pretty_distro_name = $self->upgrade_to_pretty_name();
+    my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
 
     print_box(qq[/!\ Warning: You are about to convert your cPanel & WHM $upgrade_from_name to $pretty_distro_name server.]);
 
@@ -9375,7 +9387,7 @@ sub check_status ($self) {
 sub _notify_success ($self) {
 
     my $upgrade_from_name  = Elevate::OS::pretty_name();
-    my $pretty_distro_name = $self->upgrade_to_pretty_name();
+    my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
 
     my $msg = <<"EOS";
 The cPanel & WHM server has completed the elevation process from $upgrade_from_name to $pretty_distro_name.
@@ -9417,7 +9429,7 @@ $error
 
 EOS
 
-    my $pretty_distro_name = $self->upgrade_to_pretty_name();
+    my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
     Elevate::Notify::send_notification( qq[Failed to update to $pretty_distro_name] => $msg );
 
     return;
@@ -9670,7 +9682,7 @@ sub run_stage_4 ($self) {
     }
 
     if ( Cpanel::OS::major() != 8 ) {    ## no critic(Cpanel::CpanelOS)
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
         my $current_distro     = Cpanel::OS::pretty_distro();
 
         if ( Cpanel::OS::major() == 7 ) {    ## no critic(Cpanel::CpanelOS)
@@ -9772,7 +9784,7 @@ sub run_stage_5 ($self) {
     $self->ssystem(qw{/usr/bin/dnf -y --allowerasing update});
 
     Elevate::Motd->cleanup();
-    my $pretty_distro_name = $self->upgrade_to_pretty_name();
+    my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
     print_box("Great SUCCESS! Your upgrade to $pretty_distro_name is complete.");
 
     return ACTION_REBOOT_NEEDED;
@@ -10068,7 +10080,7 @@ sub post_upgrade_check ($self) {
     $expect_distro = lc $expect_distro;
 
     unless ( Cpanel::OS::major() == 8 && Cpanel::OS::distro() eq $expect_distro ) {    ## no critic(Cpanel::CpanelOS)
-        my $pretty_distro_name = $self->upgrade_to_pretty_name();
+        my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
         die "Your distro does not look like $pretty_distro_name.\n";
     }
 
