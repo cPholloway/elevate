@@ -306,6 +306,7 @@ use Elevate::OS::Ubuntu      ();
 use Elevate::OS::Ubuntu20    ();
 
 use Elevate::Database         ();
+use Elevate::DPKG             ();
 use Elevate::EA4              ();
 use Elevate::Fetch            ();
 use Elevate::Leapp            ();
