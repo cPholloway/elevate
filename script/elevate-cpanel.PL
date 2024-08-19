@@ -1360,6 +1360,7 @@ sub run_final_components_pre_leapp ($self) {
     $self->run_component_once( 'ELS'              => 'pre_leapp' );
     $self->run_component_once( 'R1Soft'           => 'pre_leapp' );
     $self->run_component_once( 'Panopta'          => 'pre_leapp' );
+    $self->run_component_once( 'UpdateReleaseUpgrades', => 'pre_leapp' );
     $self->run_component_once( 'RpmDB'            => 'pre_leapp' );    # remove the RPMs last
 
     return;
