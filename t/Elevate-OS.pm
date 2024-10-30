@@ -28,7 +28,7 @@ my @skip = qw{ ALL ALWAYS AUTOLOAD BEGIN DESTROY DEBUG ERROR FATAL INFO INIT LOG
 
 my @stash = sort keys %{Elevate::OS::};
 
-foreach my $os (qw{ CentOS7 CloudLinux7 }) {
+foreach my $os (qw{ CentOS7 CloudLinux7 Ubuntu20 }) {
     note "Test $os";
     set_os_to($os);
 
