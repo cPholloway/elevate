@@ -10,8 +10,6 @@ Elevate::OS::CentOS7 - CentOS7 custom values
 
 use cPstrict;
 
-use Log::Log4perl qw(:easy);
-
 use parent 'Elevate::OS::RHEL';
 
 use constant default_upgrade_to     => 'AlmaLinux';
