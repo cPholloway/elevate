@@ -12,8 +12,6 @@ Rhel base class
 
 use cPstrict;
 
-use Log::Log4perl qw(:easy);
-
 use constant disable_mysql_yum_repos => qw{
   Mysql57.repo
   Mysql80.repo
