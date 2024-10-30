@@ -43,6 +43,15 @@ require $FindBin::Bin . '/../elevate-cpanel';
 }
 
 {
+    set_os_to_ubuntu_20();
+
+    my $obj = Elevate::PkgMgr::instance();
+    isa_ok $obj, 'Elevate::PkgMgr::APT';
+
+    $Elevate::PkgMgr::PKGUTILITY = undef;
+}
+
+{
     note 'Test PkgMgr methods';
 
     my @skip = qw{ factory instance BEGIN PKGUTILITY };
@@ -56,6 +65,7 @@ require $FindBin::Bin . '/../elevate-cpanel';
         next if grep { $_ eq $sub } @skip;
 
         ok( Elevate::PkgMgr::YUM->can($sub), "Elevate::PkgMgr::YUM::$sub" );
+        ok( Elevate::PkgMgr::APT->can($sub), "Elevate::PkgMgr::APT::$sub" );
     }
 }
 

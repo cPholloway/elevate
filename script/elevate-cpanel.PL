@@ -288,6 +288,8 @@ use Elevate::OS              ();
 use Elevate::OS::CentOS7     ();
 use Elevate::OS::CloudLinux7 ();
 use Elevate::OS::RHEL        ();
+use Elevate::OS::Ubuntu      ();
+use Elevate::OS::Ubuntu20    ();
 
 # - fatpack package logic
 use Elevate::PkgMgr       ();
