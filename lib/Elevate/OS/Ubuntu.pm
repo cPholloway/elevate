@@ -79,6 +79,7 @@ use constant skip_minor_version_check        => 1;
 use constant supports_jetbackup              => 0;
 use constant supports_kernelcare             => 0;
 use constant supports_postgresql             => 0;
+use constant upgrade_to_pretty_name          => undef;
 use constant vetted_yum_repo                 => undef;
 
 1;
