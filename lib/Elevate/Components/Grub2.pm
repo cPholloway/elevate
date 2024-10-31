@@ -316,6 +316,7 @@ sub post_distro_upgrade ($self) {
 
 sub check ($self) {
 
+    return 1 unless Elevate::OS::needs_leapp();
     return 1 unless $self->should_run_distro_upgrade;    # skip when --upgrade-distro-manually is provided
 
     my $ok = 1;
