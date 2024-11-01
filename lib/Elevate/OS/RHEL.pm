@@ -99,6 +99,7 @@ use constant provides_mysql_governor         => 0;
 use constant remove_els                      => 0;
 use constant should_check_cloudlinux_license => 0;
 use constant supports_jetbackup              => 1;
+use constant supports_postgresql             => 1;
 use constant skip_minor_version_check        => 0;
 use constant leapp_repo_beta                 => '';       # Unavailable by default.
 use constant upgrade_to_pretty_name          => undef;
