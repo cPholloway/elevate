@@ -293,6 +293,7 @@ use Elevate::OS::Ubuntu20    ();
 
 # - fatpack package logic
 use Elevate::PkgMgr       ();
+use Elevate::PkgMgr::APT  ();
 use Elevate::PkgMgr::Base ();
 use Elevate::PkgMgr::YUM  ();
 
