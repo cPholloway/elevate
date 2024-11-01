@@ -1,18 +1,18 @@
-package Elevate::PkgMgr::YUM;
+package Elevate::PkgMgr::APT;
 
 =encoding utf-8
 
 =head1 NAME
 
-Elevate::PkgMgr::YUM
+Elevate::PkgMgr::APT
 
-Logic wrapping the RHEL based package managers
+Logic wrapping the DEBIAN based package managers
 
 =cut
 
 use cPstrict;
 
-use Cpanel::OS ();
+use File::Copy ();
 
 use Elevate::OS ();
 
@@ -20,14 +20,12 @@ use Log::Log4perl qw(:easy);
 
 use parent 'Elevate::PkgMgr::Base';
 
-our $rpm = '/usr/bin/rpm';
+our $apt        = '/usr/bin/apt';
+our $dpkg       = '/usr/bin/dpkg';
+our $dpkg_query = '/usr/bin/dpkg-query';
 
 sub name ($self) {
     return Elevate::OS::package_manager();
-}
-
-sub _pkgmgr ($self) {
-    return '/usr/bin/' . Cpanel::OS::package_manager();
 }
 
 sub get_config_files ( $self, $pkgs ) {
@@ -35,7 +33,12 @@ sub get_config_files ( $self, $pkgs ) {
     my %config_files;
     foreach my $pkg (@$pkgs) {
 
-        my $out = $self->ssystem_capture_output( $rpm, '-qc', $pkg ) || {};
+        my $out = $self->ssystem_capture_output(
+            $dpkg_query,
+            q[--showformat=${Conffiles}\n],
+            '--show',
+            $pkg
+        );
 
         if ( $out->{status} != 0 ) {
 
@@ -46,16 +49,24 @@ sub get_config_files ( $self, $pkgs ) {
             into place.
             EOS
 
-            $config_files{$pkg} = [];
         }
         else {
 
-            # rpm -qc will return absolute paths if the package has config files
-            # In the event that package does not contain any files, it will return
-            # "(contains no files)"
-            # We need to filter anything that is not an absolute path out
-            my @pkg_config_files = grep { $_ =~ m{^/} } @{ $out->{stdout} };
+            # The query will return the absolute path of config file followed
+            # by a space and the original md5sum of the file
+            # If the package does not contain any files, it will return an
+            # empty line
+            my @pkg_config_files;
+            foreach my $line ( @{ $out->{stdout} } ) {
+                next if $line =~ m{^\s*$};
+                $line =~ s/^\s+|\s+$//g;
 
+                my ( $config_file, $md5sum ) = split qr/\s+/, $line;
+                push @pkg_config_files, $config_file;
+            }
+
+            my $restore_suffix = $self->_get_config_file_suffix();
+            File::Copy::copy( $pkg, $pkg . $restore_suffix );
             $config_files{$pkg} = \@pkg_config_files;
         }
     }
@@ -64,7 +75,7 @@ sub get_config_files ( $self, $pkgs ) {
 }
 
 sub _get_config_file_suffix ($self) {
-    return '.rpmsave';
+    return '.pre_elevate';
 }
 
 sub remove_no_dependencies_and_justdb ( $self, $pkg ) {

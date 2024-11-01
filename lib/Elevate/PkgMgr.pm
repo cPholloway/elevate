@@ -14,6 +14,7 @@ as rpm and dpkg
 use cPstrict;
 
 use Elevate::PkgMgr::YUM ();
+use Elevate::PkgMgr::APT ();
 
 our $PKGUTILITY;
 
