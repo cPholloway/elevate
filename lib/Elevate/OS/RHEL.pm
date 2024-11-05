@@ -103,5 +103,6 @@ use constant supports_postgresql             => 1;
 use constant skip_minor_version_check        => 0;
 use constant leapp_repo_beta                 => '';       # Unavailable by default.
 use constant upgrade_to_pretty_name          => undef;
+use constant vetted_apt_lists                => {};
 
 1;

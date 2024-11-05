@@ -40,6 +40,7 @@ use Elevate::Components::JetBackup          ();
 use Elevate::Components::KernelCare         ();
 use Elevate::Components::Kernel             ();
 use Elevate::Components::Leapp              ();
+use Elevate::Components::Lists              ();
 use Elevate::Components::LiteSpeed          ();
 use Elevate::Components::MountPoints        ();
 use Elevate::Components::MySQL              ();
@@ -91,6 +92,7 @@ our @CHECKS = qw{
 
   MySQL
   Repositories
+  Lists
   JetBackup
   NICs
   EA4
