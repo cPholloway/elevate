@@ -92,7 +92,9 @@ BEGIN {
         'leapp_flag',                           # This is used to determine if we need to pass any flags to the leapp script or not
         'lts_supported',                        # This is the major cPanel version supported for this OS
         'name',                                 # This is the name of the OS we are upgrading from (i.e. CentOS7, or CloudLinux7)
+        'needs_epel',                           # This is used to determine if the OS requires the epel repo
         'needs_leapp',                          # This is used to determine if the OS requires the leapp utility to upgrade
+        'needs_powertools',                     # This is used to determine if the OS requires the powertools repo
         'package_manager',                      # This is the package manager that the OS uses.  i.e. RPM
         'pretty_name',                          # This is the pretty name of the OS we are upgrading from (i.e. 'CentOS 7')
         'provides_mysql_governor',              # This is used to determine if the OS provides the governor-mysql package

@@ -89,7 +89,8 @@ sub get_installed_pkgs ( $self, $filter = undef ) {
 }
 
 sub get_cpanel_arch_pkgs ($self) {
-    my @installed_pkgs   = $self->get_installed_pkgs();
+    my $pkg_info         = $self->get_installed_pkgs();
+    my @installed_pkgs   = keys %$pkg_info;
     my @cpanel_arch_pkgs = grep { $_ =~ m/^cpanel-.*\.x86_64$/ } @installed_pkgs;
     return @cpanel_arch_pkgs;
 }
