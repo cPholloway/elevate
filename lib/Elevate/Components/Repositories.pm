@@ -67,6 +67,8 @@ use constant EXPECTED_EXTRA_PACKAGES => (
 
 sub pre_distro_upgrade ($self) {
 
+    return if Elevate::OS::is_apt_based();
+
     $self->run_once("_disable_yum_plugin_fastestmirror");
     $self->run_once("_disable_known_yum_repositories");
     $self->run_once("_fixup_epel_repo");
