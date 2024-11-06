@@ -94,6 +94,7 @@ our @CHECKS = qw{
   Repositories
   Lists
   JetBackup
+  KernelCare
   NICs
   EA4
   BootKernel
@@ -111,7 +112,6 @@ our @NOOP_CHECKS = qw{
   ELS
   InfluxDB
   Kernel
-  KernelCare
   LiteSpeed
   NixStats
   PECL
