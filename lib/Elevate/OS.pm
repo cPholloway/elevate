@@ -92,6 +92,7 @@ BEGIN {
         'leapp_flag',                           # This is used to determine if we need to pass any flags to the leapp script or not
         'lts_supported',                        # This is the major cPanel version supported for this OS
         'name',                                 # This is the name of the OS we are upgrading from (i.e. CentOS7, or CloudLinux7)
+        'needs_do_release_upgrade',             # This is used to determine if the OS requires the do-release-upgrade utility to upgrade
         'needs_epel',                           # This is used to determine if the OS requires the epel repo
         'needs_leapp',                          # This is used to determine if the OS requires the leapp utility to upgrade
         'needs_powertools',                     # This is used to determine if the OS requires the powertools repo
