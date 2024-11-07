@@ -222,4 +222,25 @@ sub showhold ($self) {
     return $out;
 }
 
+=head1 pkg_list
+
+APT does not have an equivalent to this but it is also not needed for debian upgrades.
+As such, we just make it a noop where it returns an empty href
+
+=cut
+
+sub pkg_list ($self) {
+    return {};
+}
+
+=head1 remove_pkgs_from_repos
+
+This is a noop for apt since it is not currently needed for debian based upgrades
+
+=cut
+
+sub remove_pkgs_from_repos ($self) {
+    return;
+}
+
 1;
