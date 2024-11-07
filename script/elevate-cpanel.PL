@@ -281,6 +281,7 @@ use Elevate::Components::SSH                   ();
 use Elevate::Components::Softaculous           ();
 use Elevate::Components::UnconvertedModules    ();
 use Elevate::Components::UpdateReleaseUpgrades ();
+use Elevate::Components::UpdateSystem          ();
 use Elevate::Components::WHM                   ();
 use Elevate::Components::WPToolkit             ();
 use Elevate::Components::Acronis               ();
@@ -953,9 +954,7 @@ sub run_stage_2 ($self) {
     # Best to do this before clearing the yum cache:
     $self->run_component_once( 'PackageDupes' => 'pre_distro_upgrade' );
 
-    Elevate::PkgMgr::clean_all();
-    $self->ssystem_and_die(qw{/scripts/update-packages});
-    Elevate::PkgMgr::update();
+    $self->run_component_once( 'UpdateSystem' => 'pre_distro_upgrade' );
 
     # This needs to happen before the database upgrade because
     # it will remove the packages we want to detect
