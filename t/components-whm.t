@@ -100,7 +100,7 @@ my $whm  = $cpev->get_component('WHM');
             q{cPanel version must be above the known LTS.}
         );
 
-        $Cpanel::Version::Tiny::major_version = Elevate::Constants::MINIMUM_LTS_SUPPORTED;
+        $Cpanel::Version::Tiny::major_version = Elevate::OS::lts_supported();
         is( $whm->_blocker_is_newer_than_lts(), 0, 'Recent LTS version passes this test.' );
     }
 

@@ -29,7 +29,7 @@ use Elevate::PkgMgr ();
 
 use File::Slurper ();
 
-use parent qw{Elevate::Blockers::Base};
+use parent qw{Elevate::Components::Base};
 
 use Log::Log4perl qw(:easy);
 

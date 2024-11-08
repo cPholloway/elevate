@@ -78,6 +78,7 @@ use constant supported_cpanel_mysql_versions => qw{
 
 use constant supported_cpanel_nameserver_types => qw{
   bind
+  disabled
   powerdns
 };
 

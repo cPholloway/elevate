@@ -32,6 +32,7 @@ my $grub2_comp = cpev->new->get_component('Grub2');
 
 my $mock_g2 = Test::MockModule->new('Elevate::Components::Grub2');
 
+my $mock_grubby  = Test::MockFile->file( '/usr/sbin/grubby', '', { mode => 0755 } );
 my $mock_elevate = Test::MockFile->file('/var/cpanel/elevate');
 
 my $mock_stage_file = Test::MockModule->new('Elevate::StageFile');

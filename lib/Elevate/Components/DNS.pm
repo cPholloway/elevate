@@ -45,6 +45,9 @@ sub _get_nameserver_type () {
 
 sub _blocker_nameserver_not_supported ( $self, $nameserver = '' ) {
 
+    # Nameserver is not set so it is likely disabled which is ok
+    return 0 unless length $nameserver;
+
     my @supported_nameserver_types = Elevate::OS::supported_cpanel_nameserver_types();
     return 0 if grep { $_ eq $nameserver } @supported_nameserver_types;
 

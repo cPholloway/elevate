@@ -16,6 +16,8 @@ use Carp ();
 
 use Elevate::StageFile ();
 
+use Log::Log4perl qw(:easy);
+
 use constant SUPPORTED_DISTROS => (
     'CentOS 7',
     'CloudLinux 7',

@@ -464,7 +464,11 @@ sub test_backup_and_restore_config_files : Test(10) ($self) {
             return $ret;
         },
         get_installed_pkgs => sub {
-            return ( 'ea-foo', 'ea-bar', 'ea-nginx' );
+            return {
+                'ea-foo'   => 1,
+                'ea-bar'   => 1,
+                'ea-nginx' => 1,
+            };
         },
     );
 

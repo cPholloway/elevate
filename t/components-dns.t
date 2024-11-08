@@ -39,27 +39,21 @@ my $dns  = $cpev->get_blocker('DNS');
         set_os_to($os);
         my $expected_target_os = $os eq 'cent' ? 'AlmaLinux 8' : 'CloudLinux 8';
         $cpconf = { 'local_nameserver_type' => 'nsd' };
-        is(
+        like(
             $dns->check(),
             {
-                id  => q[Elevate::Components::DNS::_blocker_non_bind_powerdns],
-                msg => <<~"EOS",
-    $expected_target_os only supports bind or powerdns. We suggest you switch to powerdns.
-    Before upgrading, we suggest you run: /scripts/setupnameserver powerdns.
-    EOS
+                id  => q[Elevate::Components::DNS::_blocker_nameserver_not_supported],
+                msg => qr/^$expected_target_os only supports the following nameservers:/
             },
             'nsd nameserver is a blocker.'
         );
 
         $cpconf = { 'local_nameserver_type' => 'mydns' };
-        is(
+        like(
             $dns->check(),
             {
-                id  => q[Elevate::Components::DNS::_blocker_non_bind_powerdns],
-                msg => <<~"EOS",
-    $expected_target_os only supports bind or powerdns. We suggest you switch to powerdns.
-    Before upgrading, we suggest you run: /scripts/setupnameserver powerdns.
-    EOS
+                id  => q[Elevate::Components::DNS::_blocker_nameserver_not_supported],
+                msg => qr/^$expected_target_os only supports the following nameservers:/
             },
             'mydns nameserver is a blocker.'
         );
