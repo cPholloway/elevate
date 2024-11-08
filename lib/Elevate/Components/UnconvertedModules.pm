@@ -38,6 +38,8 @@ use constant EXEMPTED_PACKAGES => (
 );
 
 sub post_distro_upgrade ($self) {
+    return unless Elevate::OS::needs_leapp();
+
     $self->run_once('_remove_leapp_packages');
     $self->run_once('_warn_about_other_modules_that_did_not_convert');
     return;

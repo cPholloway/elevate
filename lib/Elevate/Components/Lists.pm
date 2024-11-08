@@ -12,12 +12,22 @@ Elevate::Components::Lists
 2. Verify that apt does not have any held packages as that can cause the upgrade to fail
 3. Determine if there are invalid/unvetted lists being used
 
+=head2 pre_distro_upgrade
+
+noop
+
+=head2 post_distro_upgrade
+
+Update the vetted list files for Ubuntu 22.04
+
 =cut
 
 use cPstrict;
 
 use Elevate::OS     ();
 use Elevate::PkgMgr ();
+
+use File::Slurper ();
 
 use parent qw{Elevate::Blockers::Base};
 
@@ -145,6 +155,40 @@ sub _blocker_invalid_apt_lists ($self) {
         to the original '.list' suffix.
         EOS
     }
+
+    return;
+}
+
+sub post_distro_upgrade {
+    return unless Elevate::OS::is_apt_based();
+
+    $self->run_once('update_list_files');
+    return;
+}
+
+sub update_list_files ($self) {
+    my $list_dir = APT_LIST_D;
+
+    opendir( my $dh, $list_dir ) or die "Unable to read directory $list_dir: $!\n";
+    foreach my $list_file ( readdir($dh) ) {
+        next unless $list_file =~ m{\.list$};
+        $self->_update_list_file($list_file);
+    }
+
+    return;
+}
+
+sub _update_list_file ( $self, $list_file ) {
+    my $list_dir         = APT_LIST_D;
+    my $vetted_apt_lists = Elevate::OS::vetted_apt_lists();
+
+    # No use making this fatal since we block on it
+    unless ( $vetted_apt_lists->{$list_file} ) {
+        WARN("Unknown list file: $list_dir/$list_file\n");
+        return;
+    }
+
+    File::Slurper::write_binary( "$list_dir/$list_file", "$vetted_apt_lists->{$list_file}\n" );
 
     return;
 }

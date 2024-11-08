@@ -1122,6 +1122,7 @@ sub run_stage_4 ($self) {
 
     $stash->{stage4} //= {};    # run once each blocks
 
+    $self->run_component_once( 'Lists', => 'post_distro_upgrade' );
     $self->run_component_once( 'RpmDB', => 'post_distro_upgrade' );
 
     $self->run_once(
@@ -1363,11 +1364,13 @@ sub run_final_components_pre_distro_upgrade ($self) {
 
 sub post_distro_upgrade_update_restore ($self) {
 
-    INFO('Removing leapp from excludes in /etc/yum.conf');
-    my $txt = eval { File::Slurper::read_text("/etc/yum.conf") };
-    if ( length $txt ) {
-        $txt =~ s/\s*python2-leapp,snactor,leapp-upgrade-el7toel8,leapp//ms;
-        File::Slurper::write_text( "/etc/yum.conf", $txt );
+    if ( Elevate::OS::needs_leapp() ) {
+        INFO('Removing leapp from excludes in /etc/yum.conf');
+        my $txt = eval { File::Slurper::read_text("/etc/yum.conf") };
+        if ( length $txt ) {
+            $txt =~ s/\s*python2-leapp,snactor,leapp-upgrade-el7toel8,leapp//ms;
+            File::Slurper::write_text( "/etc/yum.conf", $txt );
+        }
     }
 
     # plugins can use MySQL - restore database earlier
