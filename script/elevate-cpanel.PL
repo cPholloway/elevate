@@ -1423,7 +1423,7 @@ sub post_upgrade_check ($self) {
     my $expect_distro = Elevate::OS::default_upgrade_to();
     $expect_distro = lc $expect_distro;
 
-    unless ( Cpanel::OS::major() == 8 && Cpanel::OS::distro() eq $expect_distro ) {    ## no critic(Cpanel::CpanelOS)
+    unless ( Cpanel::OS::major() == Elevate::OS::expected_post_upgrade_major() && Cpanel::OS::distro() eq $expect_distro ) {    ## no critic(Cpanel::CpanelOS)
         my $pretty_distro_name = Elevate::OS::upgrade_to_pretty_name();
         die "Your distro does not look like $pretty_distro_name.\n";
     }
