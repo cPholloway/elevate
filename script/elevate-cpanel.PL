@@ -607,6 +607,15 @@ It is *highly* recommended that you have a full backup or snapshot
 of your server before proceeding.
 EOS
 
+    if ( Elevate::OS::is_experimental() ) {
+        my $pretty_name            = Elevate::OS::pretty_name();
+        my $upgrade_to_pretty_name = Elevate::OS::upgrade_to_pretty_name();
+        say <<"EOS";
+Warning*:  ELevate for $pretty_name to $upgrade_to_pretty_name is experimental software
+and is not recommended for production environments.
+EOS
+    }
+
     if ( !$self->getopt('non-interactive') ) {
         if (
             !IO::Prompt::prompt(
