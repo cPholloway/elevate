@@ -85,7 +85,7 @@ sub _get_config_file_suffix ($self) {
     return '.pre_elevate';
 }
 
-=head1 remove_no_dependencies_or_scripts_and_justdb
+=head1 remove_no_dependencies_and_justdb
 
 The RPM version of this just removes the packages from the rpmdb. It otherwise
 does not touch the filesystem. Dpkg does not have a similar functionality so
@@ -100,8 +100,18 @@ sub remove_no_dependencies_and_justdb ( $self, $pkg ) {
     return;
 }
 
+=head1 remove_no_dependencies_or_scripts_and_justdb
+
+The RPM version of this just removes the packages from the rpmdb. It otherwise
+does not touch the filesystem. Dpkg does not have a similar functionality so
+we simply make this a noop for it. This is okay to do for Ubuntu upgrades using
+ELevate since Ubuntu is more tolerant of this sort of thing in general and the
+packages this is currently used for will be upgraded to the version built
+for the newer version of Ubuntu anyway when upcp executes.
+
+=cut
+
 sub remove_no_dependencies_or_scripts_and_justdb ( $self, $pkg ) {
-    $self->ssystem( $rpm, '-e', '--nodeps', '--noscripts', '--justdb', $pkg );
     return;
 }
 
