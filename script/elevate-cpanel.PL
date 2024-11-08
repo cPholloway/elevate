@@ -1340,24 +1340,25 @@ sub stop_services_before_upcp ($self) {
 sub run_final_components_pre_distro_upgrade ($self) {
 
     # order matters
-    $self->run_component_once( 'RmMod'            => 'pre_distro_upgrade' );
-    $self->run_component_once( 'MySQL'            => 'pre_distro_upgrade' );
-    $self->run_component_once( 'PostgreSQL'       => 'pre_distro_upgrade' );
-    $self->run_component_once( 'Repositories'     => 'pre_distro_upgrade' );
-    $self->run_component_once( 'cPanelPlugins'    => 'pre_distro_upgrade' );
-    $self->run_component_once( 'PerlXS'           => 'pre_distro_upgrade' );
-    $self->run_component_once( 'WPToolkit'        => 'pre_distro_upgrade' );
-    $self->run_component_once( 'InfluxDB'         => 'pre_distro_upgrade' );
-    $self->run_component_once( 'JetBackup'        => 'pre_distro_upgrade' );
-    $self->run_component_once( 'NixStats'         => 'pre_distro_upgrade' );
-    $self->run_component_once( 'LiteSpeed'        => 'pre_distro_upgrade' );
-    $self->run_component_once( 'AbsoluteSymlinks' => 'pre_distro_upgrade' );
-    $self->run_component_once( 'ELS'              => 'pre_distro_upgrade' );
-    $self->run_component_once( 'R1Soft'           => 'pre_distro_upgrade' );
-    $self->run_component_once( 'Softaculous'      => 'pre_distro_upgrade' );
-    $self->run_component_once( 'Panopta'          => 'pre_distro_upgrade' );
-    $self->run_component_once( 'Acronis'          => 'pre_distro_upgrade' );
-    $self->run_component_once( 'RpmDB'            => 'pre_distro_upgrade' );    # remove the RPMs last
+    $self->run_component_once( 'RmMod'                 => 'pre_distro_upgrade' );
+    $self->run_component_once( 'MySQL'                 => 'pre_distro_upgrade' );
+    $self->run_component_once( 'PostgreSQL'            => 'pre_distro_upgrade' );
+    $self->run_component_once( 'Repositories'          => 'pre_distro_upgrade' );
+    $self->run_component_once( 'cPanelPlugins'         => 'pre_distro_upgrade' );
+    $self->run_component_once( 'PerlXS'                => 'pre_distro_upgrade' );
+    $self->run_component_once( 'WPToolkit'             => 'pre_distro_upgrade' );
+    $self->run_component_once( 'InfluxDB'              => 'pre_distro_upgrade' );
+    $self->run_component_once( 'JetBackup'             => 'pre_distro_upgrade' );
+    $self->run_component_once( 'NixStats'              => 'pre_distro_upgrade' );
+    $self->run_component_once( 'LiteSpeed'             => 'pre_distro_upgrade' );
+    $self->run_component_once( 'AbsoluteSymlinks'      => 'pre_distro_upgrade' );
+    $self->run_component_once( 'ELS'                   => 'pre_distro_upgrade' );
+    $self->run_component_once( 'R1Soft'                => 'pre_distro_upgrade' );
+    $self->run_component_once( 'Softaculous'           => 'pre_distro_upgrade' );
+    $self->run_component_once( 'Panopta'               => 'pre_distro_upgrade' );
+    $self->run_component_once( 'Acronis'               => 'pre_distro_upgrade' );
+    $self->run_component_once( 'UpdateReleaseUpgrades' => 'pre_distro_upgrade' );
+    $self->run_component_once( 'RpmDB'                 => 'pre_distro_upgrade' );    # remove the RPMs last
 
     return;
 }
