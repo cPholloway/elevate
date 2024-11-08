@@ -66,6 +66,7 @@ sub _blocker_apt_can_update ($self) {
     }
 
     my $makecache = Elevate::PkgMgr::makecache();
+    my $errors    = join "\n", @{ $makecache->{stderr} };
     if ( $errors =~ m/\S/ms ) {
         ERROR($error_msg);
         ERROR($errors);
@@ -159,7 +160,7 @@ sub _blocker_invalid_apt_lists ($self) {
     return;
 }
 
-sub post_distro_upgrade {
+sub post_distro_upgrade ($self) {
     return unless Elevate::OS::is_apt_based();
 
     $self->run_once('update_list_files');
