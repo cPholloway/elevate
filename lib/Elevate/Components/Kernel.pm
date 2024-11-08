@@ -58,7 +58,7 @@ sub _kernel_check ($self) {
         $msg .= "    $kernel\n";
     }
 
-    $msg .= "\nYou can remove these by running: /usr/bin/rpm -e " . join( " ", @kernel_rpms ) . "\n";
+    $msg .= "\nYou can remove these by running: /usr/bin/rpm -e " . join( " ", @el7_kernels ) . "\n";
 
     Elevate::Notify::add_final_notification($msg);
 
