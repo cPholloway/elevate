@@ -24,7 +24,7 @@ use Elevate::Usage;
 
 require $FindBin::Bin . '/../elevate-cpanel';
 
-my @skip = qw{ ALL ALWAYS AUTOLOAD BEGIN DESTROY DEBUG ERROR FATAL INFO INIT LOGCARP LOGCLUCK LOGCONFESS LOGCROAK LOGDIE LOGEXIT LOGWARN OFF OS TRACE WARN SUPPORTED_DISTROS _set_cache clear_cache factory instance supported_methods };
+my @skip = qw{ ALL ALWAYS AUTOLOAD BEGIN DESTROY DEBUG ERROR FATAL INFO INIT LOGCARP LOGCLUCK LOGCONFESS LOGCROAK LOGDIE LOGEXIT LOGWARN OFF OS TRACE WARN SUPPORTED_DISTROS get_logger _set_cache clear_cache factory instance supported_methods };
 
 my @stash = sort keys %{Elevate::OS::};
 

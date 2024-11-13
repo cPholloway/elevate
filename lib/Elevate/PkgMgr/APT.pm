@@ -73,7 +73,7 @@ sub get_config_files ( $self, $pkgs ) {
             }
 
             my $restore_suffix = $self->_get_config_file_suffix();
-            File::Copy::copy( $pkg, $pkg . $restore_suffix );
+            File::Copy::cp( $pkg, $pkg . $restore_suffix );
             $config_files{$pkg} = \@pkg_config_files;
         }
     }
@@ -239,7 +239,7 @@ As such, we just make it a noop where it returns an empty href
 
 =cut
 
-sub pkg_list ($self) {
+sub pkg_list ( $self, $invalidate_cache = 0 ) {
     return {};
 }
 

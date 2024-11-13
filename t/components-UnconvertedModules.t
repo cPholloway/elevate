@@ -27,6 +27,8 @@ my $unconvertedmodules = cpev->new->get_component('UnconvertedModules');
 {
     note "checking _remove_leapp_packages";
 
+    set_os_to('cent');
+
     my $mock_cpanel_pkgr = Test::MockModule->new('Cpanel::Pkgr');
     $mock_cpanel_pkgr->redefine(
         is_installed => sub ($pkg) {

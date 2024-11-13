@@ -97,12 +97,10 @@ sub _blocker_jetbackup_is_supported ($self) {
     return if Elevate::OS::supports_jetbackup();
 
     my $name = Elevate::OS::default_upgrade_to();
-    $self->has_blocker( <<~"END" );
+    return $self->has_blocker( <<~"END" );
     ELevate does not currently support JetBackup for upgrades of $name.
     Support for JetBackup on $name will be added in a future version of ELevate.
     END
-
-    return;
 }
 
 sub _blocker_old_jetbackup ($self) {

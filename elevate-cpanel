@@ -3117,12 +3117,10 @@ EOS
         return if Elevate::OS::supports_jetbackup();
 
         my $name = Elevate::OS::default_upgrade_to();
-        $self->has_blocker( <<~"END" );
+        return $self->has_blocker( <<~"END" );
     ELevate does not currently support JetBackup for upgrades of $name.
     Support for JetBackup on $name will be added in a future version of ELevate.
     END
-
-        return;
     }
 
     sub _blocker_old_jetbackup ($self) {
@@ -3489,7 +3487,7 @@ EOS
 
             my $held_pkgs = join( "\n", @held_packages );
             my $pkgs      = join( ' ',  @held_packages );
-            $self->has_blocker( <<~"EOS" );
+            return $self->has_blocker( <<~"EOS" );
         The following packages are currently held back and could prevent the
         upgrade from succeeding:
 
@@ -3521,7 +3519,7 @@ EOS
         if (@unvetted_list_files) {
 
             my $list_files = join( "\n", @unvetted_list_files );
-            $self->has_blocker( <<~"EOS" );
+            return $self->has_blocker( <<~"EOS" );
         The following unsupported list files were found in $list_dir:
 
         $list_files
@@ -6461,7 +6459,7 @@ EOS
         config to ensure that the elevate script can upgrade the server.
         EOS
 
-            File::Copy::copy( $upgrade_file, $backup_file );
+            File::Copy::cp( $upgrade_file, $backup_file );
 
             my $new_content = <<~'EOS';
         [DEFAULT]
@@ -6490,7 +6488,7 @@ EOS
     our @ISA;
     BEGIN { push @ISA, qw(Elevate::Components::Base); }
 
-    sub pre_leapp ($self) {
+    sub pre_distro_upgrade ($self) {
 
         unlink('/etc/apt/preferences.d/99-cpanel-exclude-packages') if Elevate::OS::is_apt_based();
 
@@ -7222,7 +7220,7 @@ deb https://wp-toolkit.plesk.com/cPanel/Ubuntu-22.04-x86_64/latest/thirdparty/ .
     };
 
     use constant default_upgrade_to          => 'Ubuntu';
-    use constant ea_alias                    => 'Ubuntu_20.04';
+    use constant ea_alias                    => 'Ubuntu_22.04';
     use constant expected_post_upgrade_major => 22;
     use constant is_experimental             => 1;
     use constant name                        => 'Ubuntu20';
@@ -7445,7 +7443,7 @@ deb https://wp-toolkit.plesk.com/cPanel/Ubuntu-22.04-x86_64/latest/thirdparty/ .
                 }
 
                 my $restore_suffix = $self->_get_config_file_suffix();
-                File::Copy::copy( $pkg, $pkg . $restore_suffix );
+                File::Copy::cp( $pkg, $pkg . $restore_suffix );
                 $config_files{$pkg} = \@pkg_config_files;
             }
         }
@@ -7551,7 +7549,7 @@ deb https://wp-toolkit.plesk.com/cPanel/Ubuntu-22.04-x86_64/latest/thirdparty/ .
         return $out;
     }
 
-    sub pkg_list ($self) {
+    sub pkg_list ( $self, $invalidate_cache = 0 ) {
         return {};
     }
 

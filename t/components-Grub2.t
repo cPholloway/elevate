@@ -99,6 +99,11 @@ $mock_stage_file->redefine( _save_stage_file => sub { $stage_data = $_[0]; retur
 {
     note "checking _blocker_blscfg: GRUB_ENABLE_BLSCFG state check";
 
+    set_os_to('ubuntu');
+    is( $components->_check_single_blocker('Grub2'), 1, 'Blocker is bypassed on Ubuntu upgrades' );
+
+    set_os_to('cent');
+
     $mock_g2->redefine( '_blocker_grub2_workaround'    => 0 );
     $mock_g2->redefine( '_blocker_grub_not_installed'  => 0 );
     $mock_g2->redefine( '_blocker_grub_config_missing' => 0 );

@@ -85,7 +85,7 @@ sub pre_distro_upgrade ($self) {
         config to ensure that the elevate script can upgrade the server.
         EOS
 
-        File::Copy::copy( $upgrade_file, $backup_file );
+        File::Copy::cp( $upgrade_file, $backup_file );
 
         my $new_content = <<~'EOS';
         [DEFAULT]

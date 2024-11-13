@@ -26,7 +26,7 @@ use Elevate::OS ();
 
 use parent qw{Elevate::Components::Base};
 
-sub pre_leapp ($self) {
+sub pre_distro_upgrade ($self) {
 
     # Remove this file so that nothing gets held back here since we need
     # to make sure that everything can update before we attempt to upgrade

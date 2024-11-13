@@ -35,9 +35,9 @@ my $cpev = cpev->new;
 my $dns  = $cpev->get_blocker('DNS');
 
 {
-    for my $os ( 'cent', 'cloud' ) {
+    for my $os ( 'cent', 'cloud', 'ubuntu' ) {
         set_os_to($os);
-        my $expected_target_os = $os eq 'cent' ? 'AlmaLinux 8' : 'CloudLinux 8';
+        my $expected_target_os = Elevate::OS::upgrade_to_pretty_name();
         $cpconf = { 'local_nameserver_type' => 'nsd' };
         like(
             $dns->check(),
@@ -60,13 +60,29 @@ my $dns  = $cpev->get_blocker('DNS');
 
         $cpconf = {};
         is( $dns->check(), 0, "Nothing set, we're ok" );
-        $cpconf = { 'local_nameserver_type' => 'bind' };
-        is( $dns->check(), 0, "if they use bind, we're ok" );
         $cpconf = { 'local_nameserver_type' => 'powerdns' };
         is( $dns->check(), 0, "if they use powerdns, we're ok" );
         $cpconf = { 'local_nameserver_type' => 'disabled' };
         is( $dns->check(), 0, "if they use no dns, we're ok" );
     }
+
+    for my $os ( 'cent', 'cloud' ) {
+        set_os_to($os);
+        $cpconf = { 'local_nameserver_type' => 'bind' };
+        is( $dns->check(), 0, "if they use bind, we're ok" );
+    }
+
+    set_os_to('ubuntu');
+    my $expected_target_os = Elevate::OS::upgrade_to_pretty_name();
+    $cpconf = { 'local_nameserver_type' => 'bind' };
+    like(
+        $dns->check(),
+        {
+            id  => q[Elevate::Components::DNS::_blocker_nameserver_not_supported],
+            msg => qr/^$expected_target_os only supports the following nameservers:/
+        },
+        "bind nameserver is a blocker for $expected_target_os."
+    );
 }
 
 done_testing();
