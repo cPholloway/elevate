@@ -66,16 +66,15 @@ sub _blocker_apt_can_update ($self) {
     }
 
     my $makecache = Elevate::PkgMgr::makecache();
-    my $errors    = join "\n", @{ $makecache->{stderr} };
-    if ( $errors =~ m/\S/ms ) {
+    if ( $makecache =~ m/\S/ms ) {
         ERROR($error_msg);
-        ERROR($errors);
+        ERROR($makecache);
         my $id = ref($self) . '::AptUpdateError';
         return $self->has_blocker(
-            $error_msg . $errors,
+            $error_msg . $makecache,
             info => {
                 name  => $id,
-                error => $errors,
+                error => $makecache,
             },
             blocker_id => $id,
             quiet      => 1,

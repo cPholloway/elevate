@@ -3443,16 +3443,15 @@ EOS
         }
 
         my $makecache = Elevate::PkgMgr::makecache();
-        my $errors    = join "\n", @{ $makecache->{stderr} };
-        if ( $errors =~ m/\S/ms ) {
+        if ( $makecache =~ m/\S/ms ) {
             ERROR($error_msg);
-            ERROR($errors);
+            ERROR($makecache);
             my $id = ref($self) . '::AptUpdateError';
             return $self->has_blocker(
-                $error_msg . $errors,
+                $error_msg . $makecache,
                 info => {
                     name  => $id,
-                    error => $errors,
+                    error => $makecache,
                 },
                 blocker_id => $id,
                 quiet      => 1,
@@ -6484,16 +6483,22 @@ EOS
 
     use Elevate::OS ();
 
+    # use Log::Log4perl qw(:easy);
+    INIT { Log::Log4perl->import(qw{:easy}); }
+
     # use Elevate::Components::Base();
     our @ISA;
     BEGIN { push @ISA, qw(Elevate::Components::Base); }
 
     sub pre_distro_upgrade ($self) {
-
-        unlink('/etc/apt/preferences.d/99-cpanel-exclude-packages') if Elevate::OS::is_apt_based();
-
         Elevate::PkgMgr::clean_all();
         $self->ssystem_and_die(qw{/scripts/update-packages});
+
+        if ( Elevate::OS::is_apt_based() ) {
+            INFO('Removing /etc/apt/preferences.d/99-cpanel-exclude-packages');
+            unlink('/etc/apt/preferences.d/99-cpanel-exclude-packages');
+        }
+
         Elevate::PkgMgr::update();
 
         return;
@@ -7219,8 +7224,10 @@ deb https://wp-toolkit.plesk.com/cPanel/Ubuntu-22.04-x86_64/latest/thirdparty/ .
       powerdns
     };
 
-    use constant default_upgrade_to          => 'Ubuntu';
-    use constant ea_alias                    => 'Ubuntu_22.04';
+    use constant default_upgrade_to => 'Ubuntu';
+
+    use constant ea_alias => 'Ubuntu_20.04';
+
     use constant expected_post_upgrade_major => 22;
     use constant is_experimental             => 1;
     use constant name                        => 'Ubuntu20';
@@ -7540,7 +7547,8 @@ deb https://wp-toolkit.plesk.com/cPanel/Ubuntu-22.04-x86_64/latest/thirdparty/ .
 
     sub makecache ($self) {
         my $out    = $self->ssystem_capture_output( $apt, 'update' );
-        my $stderr = join "\n", @{ $out->{stderr} };
+        my @errors = grep { $_ !~ m/apt does not have a stable CLI interface/ } @{ $out->{stderr} };
+        my $stderr = join "\n", @errors;
         return $stderr;
     }
 
@@ -7553,7 +7561,7 @@ deb https://wp-toolkit.plesk.com/cPanel/Ubuntu-22.04-x86_64/latest/thirdparty/ .
         return {};
     }
 
-    sub remove_pkgs_from_repos ($self) {
+    sub remove_pkgs_from_repos ( $self, @pkg_list ) {
         return;
     }
 

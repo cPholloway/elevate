@@ -24,17 +24,24 @@ use cPstrict;
 
 use Elevate::OS ();
 
+use Log::Log4perl qw(:easy);
+
 use parent qw{Elevate::Components::Base};
 
 sub pre_distro_upgrade ($self) {
+    Elevate::PkgMgr::clean_all();
+    $self->ssystem_and_die(qw{/scripts/update-packages});
 
     # Remove this file so that nothing gets held back here since we need
     # to make sure that everything can update before we attempt to upgrade
     # the server
-    unlink('/etc/apt/preferences.d/99-cpanel-exclude-packages') if Elevate::OS::is_apt_based();
+    # NOTE: This has to happen after update-packages or update-packages
+    #       will put it back in place
+    if ( Elevate::OS::is_apt_based() ) {
+        INFO('Removing /etc/apt/preferences.d/99-cpanel-exclude-packages');
+        unlink('/etc/apt/preferences.d/99-cpanel-exclude-packages');
+    }
 
-    Elevate::PkgMgr::clean_all();
-    $self->ssystem_and_die(qw{/scripts/update-packages});
     Elevate::PkgMgr::update();
 
     return;

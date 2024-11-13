@@ -59,8 +59,13 @@ use constant supported_cpanel_nameserver_types => qw{
   powerdns
 };
 
-use constant default_upgrade_to          => 'Ubuntu';
-use constant ea_alias                    => 'Ubuntu_22.04';
+use constant default_upgrade_to => 'Ubuntu';
+
+# TODO: This should be 'Ubuntu_22.04' but support does not exist
+#       for that target yet.  Leaving this as 'Ubuntu_20.04'
+#       for the MVP release
+use constant ea_alias => 'Ubuntu_20.04';
+
 use constant expected_post_upgrade_major => 22;
 use constant is_experimental             => 1;
 use constant name                        => 'Ubuntu20';
