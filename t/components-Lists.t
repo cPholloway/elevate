@@ -40,8 +40,8 @@ my $comp = cpev->new->get_component('Lists');
 
     set_os_to('ubuntu');
 
+    my $makecache_ret;
     my $clean_all_ret = {};
-    my $makecache_ret = {};
     my $showhold_ret  = {};
     $mock_pkgmgr->redefine(
         clean_all => sub { return $clean_all_ret; },
@@ -54,9 +54,7 @@ my $comp = cpev->new->get_component('Lists');
         stderr => ['No soup for you'],
     };
 
-    $makecache_ret = {
-        stderr => ['No soup for you'],
-    };
+    $makecache_ret = 'No soup for you';
 
     like(
         $comp->_blocker_apt_can_update(),
@@ -76,9 +74,7 @@ my $comp = cpev->new->get_component('Lists');
         status => 0,
     };
 
-    $makecache_ret = {
-        stderr => [],
-    };
+    $makecache_ret = '';
 
     is( $comp->_blocker_apt_can_update(), undef, 'No blocker when makecache completes successfully' );
     no_messages_seen();
