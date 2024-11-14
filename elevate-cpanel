@@ -7440,6 +7440,8 @@ deb https://wp-toolkit.plesk.com/cPanel/Ubuntu-22.04-x86_64/latest/thirdparty/ .
             }
             else {
 
+                my $restore_suffix = $self->_get_config_file_suffix();
+
                 my @pkg_config_files;
                 foreach my $line ( @{ $out->{stdout} } ) {
                     next if $line =~ m{^\s*$};
@@ -7447,10 +7449,10 @@ deb https://wp-toolkit.plesk.com/cPanel/Ubuntu-22.04-x86_64/latest/thirdparty/ .
 
                     my ( $config_file, $md5sum ) = split qr/\s+/, $line;
                     push @pkg_config_files, $config_file;
+
+                    File::Copy::cp( $config_file, $config_file . $restore_suffix );
                 }
 
-                my $restore_suffix = $self->_get_config_file_suffix();
-                File::Copy::cp( $pkg, $pkg . $restore_suffix );
                 $config_files{$pkg} = \@pkg_config_files;
             }
         }

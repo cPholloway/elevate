@@ -59,6 +59,8 @@ sub get_config_files ( $self, $pkgs ) {
         }
         else {
 
+            my $restore_suffix = $self->_get_config_file_suffix();
+
             # The query will return the absolute path of config file followed
             # by a space and the original md5sum of the file
             # If the package does not contain any files, it will return an
@@ -70,10 +72,10 @@ sub get_config_files ( $self, $pkgs ) {
 
                 my ( $config_file, $md5sum ) = split qr/\s+/, $line;
                 push @pkg_config_files, $config_file;
+
+                File::Copy::cp( $config_file, $config_file . $restore_suffix );
             }
 
-            my $restore_suffix = $self->_get_config_file_suffix();
-            File::Copy::cp( $pkg, $pkg . $restore_suffix );
             $config_files{$pkg} = \@pkg_config_files;
         }
     }
